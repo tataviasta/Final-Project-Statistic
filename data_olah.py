@@ -1,16 +1,3 @@
-# app_fomo_assignment.py
-# Streamlit app for FOMO (X) & Social Media Addiction (Y)
-# Features:
-# - Data cleaning: keep only Age in {13–18, 19–23, 24–28} and create Age_Group
-# - Descriptive stats (mean, median, mode, min, max, std dev)
-# - Frequency & percentage + bar chart
-# - Histograms
-# - Scatterplot X_total vs Y_total
-# - Composite scores X_total & Y_total
-# - Association: Pearson / Spearman / Chi-square (choose ONE)
-# - Summary interpretation
-# - PDF report + optional plots
-
 import streamlit as st
 import pandas as pd
 import numpy as np
