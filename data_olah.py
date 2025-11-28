@@ -27,18 +27,18 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📊 FOMO & Social Media Addiction – Statistics Web App")
-st.caption("Statistics 1 • Group 3 • Python + Streamlit")
+st.title("📊 The Relationship between Fear of Missing Out (FOMO) and Social Media Addiction among Generation Z ")
+st.caption("Statistics 1 • Group 3 • Class 1")
 
 # ------------------------------------------------------------------
 # SIDEBAR – GROUP MEMBERS
 # ------------------------------------------------------------------
 st.sidebar.header("👥 Group Members")
 # GANTI DENGAN NAMA ASLI KALIAN
-st.sidebar.write("- Member 1")
-st.sidebar.write("- Member 2")
-st.sidebar.write("- Member 3")
-st.sidebar.write("- Member 4")
+st.sidebar.write("- Delon")
+st.sidebar.write("- Kallista")
+st.sidebar.write("- Nabila")
+st.sidebar.write("- Pingkan")
 
 # ------------------------------------------------------------------
 # 1. UPLOAD DATASET
