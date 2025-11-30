@@ -34,7 +34,6 @@ st.caption("Statistics 1 • Class 1")
 # SIDEBAR – GROUP MEMBERS
 # ------------------------------------------------------------------
 st.sidebar.header("👥 Group Members")
-# GANTI DENGAN NAMA ASLI KALIAN
 st.sidebar.write("- Delon Raphael Andianto (004202200050)")
 st.sidebar.write("- Kallista Viasta (004202200039)")
 st.sidebar.write("- Nabila Putri Amalia (004202200049)")
