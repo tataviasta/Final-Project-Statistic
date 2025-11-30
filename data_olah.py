@@ -28,17 +28,17 @@ st.set_page_config(
 )
 
 st.title("📊 The Relationship between Fear of Missing Out (FOMO) and Social Media Addiction among Generation Z ")
-st.caption("Statistics 1 • Group 3 • Class 1")
+st.caption("Statistics 1 • Class 1")
 
 # ------------------------------------------------------------------
 # SIDEBAR – GROUP MEMBERS
 # ------------------------------------------------------------------
 st.sidebar.header("👥 Group Members")
 # GANTI DENGAN NAMA ASLI KALIAN
-st.sidebar.write("- Delon")
-st.sidebar.write("- Kallista")
-st.sidebar.write("- Nabila")
-st.sidebar.write("- Pingkan")
+st.sidebar.write("- Delon Raphael Andianto (004202200050)")
+st.sidebar.write("- Kallista Viasta (004202200039)")
+st.sidebar.write("- Nabila Putri Amalia (004202200049)")
+st.sidebar.write("- Pingkan R G Lumingkewas (004202200035)")
 
 # ------------------------------------------------------------------
 # 1. UPLOAD DATASET
