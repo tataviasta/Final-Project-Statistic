@@ -398,6 +398,17 @@ tab_desc, tab_vis, tab_assoc, tab_pdf = st.tabs(
 
 # ------------------ TAB DESCRIPTIVES ------------------
 with tab_desc:
+    st.markdown("### 5.0 Demographic Summary")
+
+    st.markdown("**Age Group Distribution**")
+    st.dataframe(age_demo_df)
+
+    if gender_demo_df is not None:
+        st.markdown("**Gender Distribution**")
+        st.dataframe(gender_demo_df)
+    else:
+        st.info("Gender column was not detected, so gender distribution is not shown.")
+with tab_desc:
     st.markdown("### 5.1 Descriptive Statistics – Each Survey Item")
     desc_items = descriptive_table(df, x_items + y_items)
     st.dataframe(desc_items)
