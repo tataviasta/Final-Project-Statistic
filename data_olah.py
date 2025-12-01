@@ -121,6 +121,35 @@ st.write("Preview data after cleaning & age grouping:")
 st.dataframe(df.head())
 
 # ------------------------------------------------------------------
+# DEMOGRAPHIC SUMMARY (Age_Group + optional Gender)
+# ------------------------------------------------------------------
+
+# Summary Age_Group (frequency + percentage)
+age_counts = df["Age_Group"].value_counts().sort_index()
+age_demo_df = pd.DataFrame({
+    "Age Group": age_counts.index,
+    "Frequency": age_counts.values,
+})
+age_demo_df["Percentage (%)"] = (age_demo_df["Frequency"] / age_demo_df["Frequency"].sum() * 100).round(2)
+
+# Deteksi kolom gender otomatis (optional)
+GENDER_COLUMN = None
+for col in df.columns:
+    col_lower = str(col).lower()
+    if "gender" in col_lower or "jenis kelamin" in col_lower:
+        GENDER_COLUMN = col
+        break
+
+gender_demo_df = None
+if GENDER_COLUMN is not None:
+    gender_counts = df[GENDER_COLUMN].value_counts().sort_index()
+    gender_demo_df = pd.DataFrame({
+        "Gender": gender_counts.index,
+        "Frequency": gender_counts.values,
+    })
+    gender_demo_df["Percentage (%)"] = (gender_demo_df["Frequency"] / gender_demo_df["Frequency"].sum() * 100).round(2)
+
+# ------------------------------------------------------------------
 # 2. FIXED DEFINITIONS UNTUK X & Y (SESUIAI KUESIONER)
 # ------------------------------------------------------------------
 FOMO_LABELS = {
