@@ -61,7 +61,7 @@ else:
 st.write("Preview data (The first 5 lines, before age cleaning):")
 st.dataframe(df.head())
 
-with st.expander("See all column names (headers)::"):
+with st.expander("See all column names (headers):"):
     st.write(list(df.columns))
 
 # ------------------------------------------------------------------
