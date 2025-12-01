@@ -426,7 +426,7 @@ else:
 # 7. TABS
 # ------------------------------------------------------------------
 tab_desc, tab_vis, tab_assoc, tab_pdf = st.tabs(
-    ["📋 Descriptive Statistics", "📈 Visualizations", "🔗 Association", "📄 PDF Report"]
+    ["📋 Descriptive Statistics", "📈 Visualizations", "🔗 Analysis Result", "📄 PDF Report"]
 )
 
 # ------------------ TAB DESCRIPTIVES ------------------
