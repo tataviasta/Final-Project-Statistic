@@ -551,7 +551,7 @@ with tab_assoc:
         st.write(f"**p-value:** {assoc_stats['p']:.4f}")
         st.write(f"**Interpretation:** {assoc_stats['signif_text']}.")
 
-    st.markdown("**Summary (bisa langsung dipakai di laporan):**")
+    st.markdown("**Summary:**")
     st.write(assoc_summary_text)
 
 # ------------------ TAB PDF REPORT ------------------
