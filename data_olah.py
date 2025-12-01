@@ -45,7 +45,7 @@ st.sidebar.write("- Pingkan R G Lumingkewas (004202200035)")
 st.subheader("1. Upload Dataset")
 
 uploaded = st.file_uploader(
-    "Upload file CSV atau Excel (export Google Form):",
+    "Upload a CSV or Excel file:",
     type=["csv", "xlsx"]
 )
 
@@ -58,10 +58,10 @@ if uploaded.name.lower().endswith(".csv"):
 else:
     df = pd.read_excel(uploaded)
 
-st.write("Preview data (5 baris pertama, sebelum cleaning usia):")
+st.write("Preview data (The first 5 lines, before age cleaning):")
 st.dataframe(df.head())
 
-with st.expander("Lihat semua nama kolom (header):"):
+with st.expander("See all column names (headers)::"):
     st.write(list(df.columns))
 
 # ------------------------------------------------------------------
@@ -114,7 +114,7 @@ st.write(f"- Respondents before cleaning: {before_clean}")
 st.write(f"- Respondents after cleaning (13–28 years group only): {after_clean}")
 st.write(f"- Removed respondents: {before_clean - after_clean}")
 
-st.write("**Distribusi kelompok usia (Age_Group):**")
+st.write("**Age Group Distribution:**")
 st.dataframe(df["Age_Group"].value_counts().rename("Number of respondents"))
 
 st.write("Preview data after cleaning & age grouping:")
@@ -221,10 +221,10 @@ cA, cB = st.columns(2)
 
 with cA:
     x_items = st.multiselect(
-        "FOMO (X) – pilih item:",
+        "FOMO (X) – Items Choose:",
         options=fixed_x_all,
         default=fixed_x_all,
-        help="Hanya X1–X5 (sesuai kuesioner).",
+        help="Just X1–X5 (Like Questionnaire).",
     )
     st.markdown("**Selected FOMO items:**")
     for code in x_items:
@@ -232,17 +232,17 @@ with cA:
 
 with cB:
     y_items = st.multiselect(
-        "Social Media Addiction (Y) – pilih item:",
+        "Social Media Addiction (Y) – Items Choose:",
         options=fixed_y_all,
         default=fixed_y_all,
-        help="Hanya Y1–Y5 (sesuai kuesioner).",
+        help="Just Y1–Y5 (Like Questionnaire).",
     )
     st.markdown("**Selected Addiction items:**")
     for code in y_items:
         st.caption(f"**{code}** — {ADDICTION_LABELS[code]}")
 
 if len(x_items) == 0 or len(y_items) == 0:
-    st.warning("Pilih minimal 1 item X dan 1 item Y.")
+    st.warning("Minimum Choose 1 item X and 1 item Y.")
     st.stop()
 
 for col in x_items + y_items:
