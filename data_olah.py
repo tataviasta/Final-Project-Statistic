@@ -530,6 +530,7 @@ with tab_pdf:
     include_items = st.checkbox("Descriptive statistics – items (X & Y)", value=True)
     include_comp = st.checkbox("Descriptive statistics – composite scores (X_total & Y_total)", value=True)
     include_corr = st.checkbox("Association analysis summary", value=True)
+    include_demo = st.checkbox("Demographic summary (Age & Gender)", value=True)
     include_freq_plot = st.checkbox("Frequency bar chart", value=True)
     include_hist_plot = st.checkbox("Histogram (one variable)", value=True)
     include_scatter_plot = st.checkbox("Scatterplot X_total vs Y_total", value=True)
@@ -592,6 +593,14 @@ with tab_pdf:
             )
             story.append(tbl)
             story.append(Spacer(1, 10))
+
+        if include_demo:
+            # Age group table
+            add_table("Demographic Summary – Age Group", age_demo_df)
+
+            # Gender table (if available)
+        if gender_demo_df is not None:
+                add_table("Demographic Summary – Gender", gender_demo_df)
 
         if include_items:
             add_table("Descriptive Statistics – Selected Items", desc_items)
