@@ -273,6 +273,37 @@ n_valid = valid_xy.shape[0]
 mean_x = valid_xy["X_total"].mean()
 mean_y = valid_xy["Y_total"].mean()
 
+# ------------------------------------------------------------------
+# NORMALITY TEST (Shapiro–Wilk)
+# ------------------------------------------------------------------
+
+st.subheader("Normality Test (Shapiro–Wilk)")
+
+shapiro_x = stats.shapiro(valid_xy["X_total"])
+shapiro_y = stats.shapiro(valid_xy["Y_total"])
+
+normal_x = "Normal" if shapiro_x.pvalue >= 0.05 else "Not Normal"
+normal_y = "Normal" if shapiro_y.pvalue >= 0.05 else "Not Normal"
+
+st.write("### Result:")
+
+result_norm = pd.DataFrame({
+    "Variable": ["X_total", "Y_total"],
+    "Shapiro-Wilk Statistic": [shapiro_x.statistic, shapiro_y.statistic],
+    "p-value": [shapiro_x.pvalue, shapiro_y.pvalue],
+    "Normality": [normal_x, normal_y]
+})
+
+st.dataframe(result_norm.round(4))
+
+# Rekomendasi metode berdasarkan normality
+if normal_x == "Normal" and normal_y == "Normal":
+    recommended_method = "Pearson Correlation"
+else:
+    recommended_method = "Spearman Rank Correlation"
+
+st.info(f"✅ Recommended association method based on normality test: **{recommended_method}**")
+
 m1, m2, m3 = st.columns(3)
 m1.metric("Valid respondents (after age filter)", n_valid)
 m2.metric("Average FOMO (X_total)", f"{mean_x:.2f}")
@@ -309,10 +340,12 @@ def descriptive_table(data: pd.DataFrame, cols):
 st.subheader("4. Association Analysis – Choose One Method")
 
 assoc_method = st.radio(
-    "Association method for X and Y:",
+    "Association method for X and Y (based on normality recommendation):",
     ["Pearson Correlation", "Spearman Rank Correlation", "Chi-square Test (categorical X & Y)"],
     index=0,
 )
+
+st.caption(f"Normality-based recommendation: {recommended_method}")
 
 assoc_stats = {}
 assoc_summary_text = ""
@@ -531,6 +564,7 @@ with tab_pdf:
     include_comp = st.checkbox("Descriptive statistics – composite scores (X_total & Y_total)", value=True)
     include_corr = st.checkbox("Association analysis summary", value=True)
     include_demo = st.checkbox("Demographic summary (Age & Gender)", value=True)
+    include_normality = st.checkbox("Normality test result (Shapiro–Wilk)", value=True)
     include_freq_plot = st.checkbox("Frequency bar chart", value=True)
     include_hist_plot = st.checkbox("Histogram (one variable)", value=True)
     include_scatter_plot = st.checkbox("Scatterplot X_total vs Y_total", value=True)
@@ -594,6 +628,9 @@ with tab_pdf:
             story.append(tbl)
             story.append(Spacer(1, 10))
 
+        if include_normality:
+            add_table("Normality Test (Shapiro–Wilk)", result_norm)
+        
         if include_demo:
             # Age group table
             add_table("Demographic Summary – Age Group", age_demo_df)
