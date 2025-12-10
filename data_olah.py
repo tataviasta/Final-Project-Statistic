@@ -330,10 +330,11 @@ st.set_page_config(
 # ------------------------------------------------------------------
 st.sidebar.markdown("### 🌐 Language / Bahasa")
 selected_lang = st.sidebar.radio(
-    "",
+    "Select Language",
     options=["en", "id"],
     format_func=lambda x: "🇺🇸 English" if x == "en" else "🇮🇩 Indonesia",
-    horizontal=True
+    horizontal=True,
+    label_visibility="collapsed"
 )
 
 # Get translations for selected language
@@ -375,7 +376,7 @@ else:
     df = pd.read_excel(uploaded)
 
 st.write(t["preview_data"])
-st.dataframe(df.head(), use_container_width=True)
+st.dataframe(df.head(), width='stretch')
 
 with st.expander(t["see_columns"]):
     st.write(list(df.columns))
@@ -418,10 +419,10 @@ st.write(f"- {t['respondents_after']} {after_clean}")
 st.write(f"- {t['respondents_removed']} {before_clean - after_clean}")
 
 st.write(t["age_distribution"])
-st.dataframe(df["Age_Group"].value_counts().rename(t["num_respondents"]), use_container_width=True)
+st.dataframe(df["Age_Group"].value_counts().rename(t["num_respondents"]), width='stretch')
 
 st.write(t["preview_after_clean"])
-st.dataframe(df.head(), use_container_width=True)
+st.dataframe(df.head(), width='stretch')
 
 # ------------------------------------------------------------------
 # DEMOGRAPHIC SUMMARY
@@ -570,7 +571,7 @@ result_norm = pd.DataFrame({
     t["normality"]: [normal_x, normal_y]
 })
 
-st.dataframe(result_norm.round(4), use_container_width=True)
+st.dataframe(result_norm.round(4), width='stretch')
 
 if normal_x == t["normal"] and normal_y == t["normal"]:
     recommended_method = t["pearson"]
@@ -666,18 +667,18 @@ if assoc_method in [t["pearson"], t["spearman"]]:
 
     if selected_lang == "en":
         assoc_summary_text = (
-        f"Using the {method_short} correlation, there is a {direction} and {strength} "
-        f"relationship between FOMO (X_total) and social media addiction (Y_total), "
-        f"with r = {r_value:.3f} and p = {p_value:.4f}, indicating that the association is "
-        f"{signif_text}."
-    )
+            f"Using the {method_short} correlation, there is a {direction} and {strength} "
+            f"relationship between FOMO (X_total) and social media addiction (Y_total), "
+            f"with r = {r_value:.3f} and p = {p_value:.4f}, indicating that the association is "
+            f"{signif_text}."
+        )
     else:
         assoc_summary_text = (
             f"Menggunakan korelasi {method_short}, terdapat hubungan {direction} dan {strength} "
             f"antara FOMO (X_total) dan kecanduan media sosial (Y_total), "
             f"dengan r = {r_value:.3f} dan p = {p_value:.4f}, menunjukkan bahwa asosiasi tersebut "
-            f"{signif_text}."
-        )
+        f"{signif_text}."
+    )
 
 else:
     st.markdown(t["chi_instruction"])
@@ -704,10 +705,10 @@ else:
 
     if selected_lang == "en":
         assoc_summary_text = (
-        f"Using the Chi-square test between {chi_x_col} and {chi_y_col}, "
-        f"the chi-square statistic is χ² = {chi2_value:.3f} with {dof} degrees of freedom "
-        f"and p = {p_chi:.4f}, indicating that the association is {signif_text}."
-    )
+            f"Using the Chi-square test between {chi_x_col} and {chi_y_col}, "
+            f"the chi-square statistic is χ² = {chi2_value:.3f} with {dof} degrees of freedom "
+            f"and p = {p_chi:.4f}, indicating that the association is {signif_text}."
+        )
     else:
         assoc_summary_text = (
             f"Menggunakan uji Chi-square antara {chi_x_col} dan {chi_y_col}, "
@@ -730,22 +731,22 @@ with tab_desc:
 
     with col1:
         st.markdown(t["age_group_dist"])
-        st.dataframe(age_demo_df, use_container_width=True)
+        st.dataframe(age_demo_df, width='stretch')
 
     with col2:
         if gender_demo_df is not None:
             st.markdown(t["gender_dist"])
-            st.dataframe(gender_demo_df, use_container_width=True)
+            st.dataframe(gender_demo_df, width='stretch')
         else:
             st.info(t["gender_not_detected"])
 
     st.markdown(t["desc_items"])
     desc_items = descriptive_table(df, x_items + y_items)
-    st.dataframe(desc_items, use_container_width=True)
+    st.dataframe(desc_items, width='stretch')
 
     st.markdown(t["desc_composite"])
     desc_comp = descriptive_table(df, ["X_total", "Y_total"])
-    st.dataframe(desc_comp, use_container_width=True)
+    st.dataframe(desc_comp, width='stretch')
 
     st.markdown(t["freq_table"])
     st.caption(t["freq_caption"])
@@ -769,7 +770,7 @@ with tab_desc:
                 freq_table.index = labeled_index
                 st.caption(t["likert_note"])
 
-            st.dataframe(freq_table, use_container_width=True)
+            st.dataframe(freq_table, width='stretch')
 
 # ------------------ TAB VISUALIZATIONS (PLOTLY INTERACTIVE) ------------------
 with tab_vis:
@@ -786,7 +787,7 @@ with tab_vis:
         color_continuous_scale='Blues'
     )
     fig_age.update_layout(showlegend=False, height=400)
-    st.plotly_chart(fig_age, use_container_width=True)
+    st.plotly_chart(fig_age, width='stretch')
     
     st.markdown("---")
     
@@ -804,10 +805,9 @@ with tab_vis:
             color_discrete_sequence=['#FF6B6B']
         )
         fig_hist_x.update_layout(showlegend=False, height=400)
-        st.plotly_chart(fig_hist_x, use_container_width=True)
+        st.plotly_chart(fig_hist_x, width='stretch')
     
     with col2:
-        st.markdown(t["hist_y"])
         fig_hist_y = px.histogram(
             valid_xy,
             x="Y_total",
@@ -817,17 +817,24 @@ with tab_vis:
             color_discrete_sequence=['#4ECDC4']
         )
         fig_hist_y.update_layout(showlegend=False, height=400)
-        st.plotly_chart(fig_hist_y, use_container_width=True)
+        st.plotly_chart(fig_hist_y, width='stretch')
     
     st.markdown("---")
     
     # 4. Interactive Scatterplot with animation
     st.markdown(t["scatter"])
+    
+    # Calculate regression line
+    z = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+    p = np.poly1d(z)
+    x_line = np.linspace(valid_xy["X_total"].min(), valid_xy["X_total"].max(), 100)
+    y_line = p(x_line)
+    
+    # Create scatter plot
     fig_scatter = px.scatter(
         valid_xy,
         x="X_total",
         y="Y_total",
-        trendline="ols",
         labels={
             'X_total': t["x_total_score"],
             'Y_total': t["y_total_score"]
@@ -837,9 +844,21 @@ with tab_vis:
         color_continuous_scale='Viridis',
         opacity=0.7
     )
+    
+    # Add regression line
+    fig_scatter.add_trace(
+        go.Scatter(
+            x=x_line,
+            y=y_line,
+            mode='lines',
+            name=t["regression_line"],
+            line=dict(color='red', dash='dash', width=2)
+        )
+    )
+    
     fig_scatter.update_layout(height=500)
-    fig_scatter.update_traces(marker=dict(size=8))
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    fig_scatter.update_traces(marker=dict(size=8), selector=dict(mode='markers'))
+    st.plotly_chart(fig_scatter, width='stretch')
     
     st.markdown("---")
     
@@ -874,7 +893,7 @@ with tab_vis:
                     color_continuous_scale='RdYlGn'
                 )
                 fig_item.update_layout(showlegend=False, height=300)
-                st.plotly_chart(fig_item, use_container_width=True)
+                st.plotly_chart(fig_item, width='stretch')
     
     st.markdown("---")
     
@@ -916,7 +935,7 @@ with tab_vis:
         legend_title=t["response_score"]
     )
     
-    st.plotly_chart(fig_stacked, use_container_width=True)
+    st.plotly_chart(fig_stacked, width='stretch')
 
 # ------------------ TAB ASSOCIATION ------------------
 with tab_assoc:
@@ -936,7 +955,7 @@ with tab_assoc:
             ]
         }).set_index("Metric")
         
-        st.dataframe(corr_data, use_container_width=True)
+        st.dataframe(corr_data, width='stretch')
 
         st.markdown(t["interpretation"])
         st.success(assoc_summary_text)
@@ -944,12 +963,17 @@ with tab_assoc:
         st.markdown("---")
         st.markdown(t["visual_check"])
         
+        # Calculate regression line
+        z = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+        p = np.poly1d(z)
+        x_line = np.linspace(valid_xy["X_total"].min(), valid_xy["X_total"].max(), 100)
+        y_line = p(x_line)
+        
         # Interactive scatterplot with regression line
         fig_assoc = px.scatter(
             valid_xy,
             x="X_total",
             y="Y_total",
-            trendline="ols",
             labels={
                 'X_total': t["x_total_score"],
                 'Y_total': t["y_total_score"]
@@ -958,8 +982,20 @@ with tab_assoc:
             color="X_total",
             color_continuous_scale='Plasma'
         )
+        
+        # Add regression line
+        fig_assoc.add_trace(
+            go.Scatter(
+                x=x_line,
+                y=y_line,
+                mode='lines',
+                name=t["regression_line"],
+                line=dict(color='red', dash='dash', width=2)
+            )
+        )
+        
         fig_assoc.update_layout(height=500)
-        st.plotly_chart(fig_assoc, use_container_width=True)
+        st.plotly_chart(fig_assoc, width='stretch')
 
     elif assoc_stats["type"] == "chi-square":
         st.markdown(f"{t['chi_result']} {assoc_stats['x']} dan {assoc_stats['y']}")
@@ -974,14 +1010,14 @@ with tab_assoc:
             ]
         }).set_index("Metric")
         
-        st.dataframe(chi_data, use_container_width=True)
+        st.dataframe(chi_data, width='stretch')
         st.markdown(t["interpretation"])
         st.success(assoc_summary_text)
         
         st.markdown("---")
         st.markdown(t["contingency"])
         contingency = pd.crosstab(df[assoc_stats['x']], df[assoc_stats['y']])
-        st.dataframe(contingency, use_container_width=True)
+        st.dataframe(contingency, width='stretch')
 
     else:
         st.warning(t["select_method"])
