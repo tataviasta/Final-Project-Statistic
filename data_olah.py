@@ -677,8 +677,8 @@ if assoc_method in [t["pearson"], t["spearman"]]:
             f"Menggunakan korelasi {method_short}, terdapat hubungan {direction} dan {strength} "
             f"antara FOMO (X_total) dan kecanduan media sosial (Y_total), "
             f"dengan r = {r_value:.3f} dan p = {p_value:.4f}, menunjukkan bahwa asosiasi tersebut "
-        f"{signif_text}."
-    )
+            f"{signif_text}."
+        )
 
 else:
     st.markdown(t["chi_instruction"])
@@ -808,6 +808,7 @@ with tab_vis:
         st.plotly_chart(fig_hist_x, width='stretch')
     
     with col2:
+        st.markdown(t["hist_y"])
         fig_hist_y = px.histogram(
             valid_xy,
             x="Y_total",
@@ -895,10 +896,10 @@ with tab_vis:
                 fig_item.update_layout(showlegend=False, height=300)
                 st.plotly_chart(fig_item, width='stretch')
     
-    st.markdown("---")
+            st.markdown("---")
     
     # 6. Interactive Stacked Bar Chart
-    st.markdown(t["stacked_chart"])
+            st.markdown(t["stacked_chart"])
     st.caption(t["stacked_caption"])
     
     freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
