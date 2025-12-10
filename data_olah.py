@@ -522,10 +522,24 @@ else:
 
 st.success(lang["comp_success"])
 
-valid_xy = df[["X_total", "Y_total"]].dropna()
+valid_xy = df[["X_total", "Y_total"]].dropna() 
 n_valid = valid_xy.shape[0]
 mean_x = valid_xy["X_total"].mean()
 mean_y = valid_xy["Y_total"].mean()
+
+# --- START DEBUGGING BLOCK ---
+st.subheader("DEBUG: Cek Keberadaan dan Isi Kolom Total")
+if "X_total" not in df.columns or "Y_total" not in df.columns:
+    st.error("❗ GAGAL KRITIS: Kolom X_total atau Y_total TIDAK DITEMUKAN di DataFrame. Periksa output 'Preview data setelah cleaning' dan 'Header Saat Ini' untuk memastikan pemetaan kolom berhasil.")
+    st.stop()
+else:
+    st.write(f"Kolom X_total dan Y_total berhasil dibuat. Jumlah responden valid: {valid_xy.shape[0]}")
+    st.dataframe(df[["X_total", "Y_total"]].head())
+# --- END DEBUGGING BLOCK ---
+
+valid_xy = df[["X_total", "Y_total"]].dropna()
+n_valid = valid_xy.shape[0]
+# ... (lanjutkan ke mean_x dan mean_y)
 
 # ------------------------------------------------------------------
 # NORMALITY TEST (Shapiro–Wilk)
