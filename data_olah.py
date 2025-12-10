@@ -649,6 +649,52 @@ with tab_vis:
         
         st.markdown("")
 
+    st.markdown("### 6.4 All Item Response Distribution (X1-Y5)")
+    st.info("Visualisasi ini menunjukkan distribusi persentase setiap kategori respons (1 hingga 5) untuk semua item FOMO (X) dan Addiction (Y) secara bersamaan.")
+
+    all_items = x_items + y_items
+    
+    # Menghitung persentase respons untuk setiap kategori (1-5) per item
+    freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
+    freq_data = freq_data.fillna(0).sort_index()
+
+    # Pastikan index kolom ada dari 1 sampai 5
+    for i in range(1, 6):
+        if i not in freq_data.columns:
+            freq_data[i] = 0.0
+
+    freq_data = freq_data.sort_index(axis=1)
+
+    # Buat Bar Chart Tumpuk (Stacked Bar Chart)
+    fig_stacked, ax_stacked = plt.subplots(figsize=(10, 6))
+    
+    # Plot data
+    # Kategori 1 sampai 5 akan menjadi kolom yang ditumpuk
+    freq_data.plot(kind='bar', stacked=True, ax=ax_stacked, 
+                   color=plt.cm.RdYlBu(np.linspace(0.1, 0.9, 5))) # Memilih palet warna
+    
+    # Keterangan & Judul
+    ax_stacked.set_title("Response Percentage Across All Items (X & Y)")
+    ax_stacked.set_xlabel("Survey Item")
+    ax_stacked.set_ylabel("Percentage (%)")
+    ax_stacked.legend(title="Response Score", bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax_stacked.tick_params(axis='x', rotation=45)
+    plt.tight_layout()
+    
+    st.pyplot(fig_stacked)
+
+    # Tombol download
+    buf_stacked = io.BytesIO()
+    fig_stacked.savefig(buf_stacked, format="png", bbox_inches="tight")
+    buf_stacked.seek(0)
+    st.download_button(
+        "Download All Item Stacked Bar Chart (PNG)",
+        data=buf_stacked,
+        file_name="all_items_stacked_bar_chart.png",
+        mime="image/png",
+    )
+    plt.close(fig_stacked)
+
 # ------------------ TAB PDF REPORT (MODIFIED) ------------------
 with tab_pdf:
     st.markdown("### 8. Export PDF Report")
