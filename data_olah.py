@@ -21,13 +21,14 @@ from reportlab.lib import colors
 # CONFIGURATIONS
 # ------------------------------------------------------------------
 
-# 1. RESPONSE LABELS
-RESPONSE_LABELS = {
-    1: "1 (SD: Strongly Disagree / Sangat Tidak Setuju)",
-    2: "2 (D: Disagree / Tidak Setuju)",
-    3: "3 (N: Neutral / Netral)",
-    4: "4 (A: Agree / Setuju)",
-    5: "5 (SA: Strongly Agree / Sangat Setuju)",
+# 1. RESPONSE LABELS (Hanya English untuk internal konsisten)
+# Namun, LABEL display diubah agar sesuai dengan bahasa terpilih (SD / Sangat Tidak Setuju)
+RESPONSE_LABELS_EN = {
+    1: "1 (SD: Strongly Disagree)",
+    2: "2 (D: Disagree)",
+    3: "3 (N: Neutral)",
+    4: "4 (A: Agree)",
+    5: "5 (SA: Strongly Agree)",
 }
 
 # 2. LANGUAGE CONFIGURATION
@@ -67,8 +68,8 @@ LANGUAGES = {
         "normality_not_normal": "Not Normal",
         "normality_reco": "✅ Recommended association method based on normality test:",
         "valid_resp_metric": "Valid respondents (after age filter)",
-        "avg_fomo_metric": "Average FOMO (X_total)",
-        "avg_addict_metric": "Average Addiction (Y_total)",
+        "avg_fomo_metric": "Average FOMO ($X_{total}$)",
+        "avg_addict_metric": "Average Addiction ($Y_{total}$)",
         "assoc_header": "4. Association Analysis – Choose One Method",
         "assoc_method_radio": "Association method for X and Y (based on normality recommendation):",
         "chi_header": "**Chi-square Test – select categorical X and Y (Likert).**",
@@ -83,13 +84,13 @@ LANGUAGES = {
         "corr_interpretation": "#### Interpretation:",
         "corr_summary_template": "Using the {method} correlation, there is a {direction} and {strength} relationship between FOMO ($X_{total}$) and social media addiction ($Y_{total}$), with $r = {r_value:.3f}$ and $p = {p_value:.4f}$, indicating that the association is {signif_text}.",
         "corr_signif": "significant ($p < 0.05$)",
-        "corr_not_signif": "not significant ($p \ge 0.05$)",
+        "corr_not_signif": "not significant ($p \\ge 0.05$)",
         "corr_visual_check": "#### Visual Check: Scatterplot",
         "chi_result_header": "#### Result of Chi-square Test between {x} and {y}",
-        "chi_metric_chi2": "Chi-square Value ($\chi^2$)",
+        "chi_metric_chi2": "Chi-square Value ($\\chi^2$)",
         "chi_metric_dof": "Degrees of Freedom (dof)",
         "chi_contingency": "#### Contingency Table",
-        "chi_summary_template": "Using the Chi-square test between {x} and {y}, the chi-square statistic is $\chi^2 = {chi2_value:.3f}$ with {dof} degrees of freedom and $p = {p_chi:.4f}$, indicating that the association is {signif_text}.",
+        "chi_summary_template": "Using the Chi-square test between {x} and {y}, the chi-square statistic is $\\chi^2 = {chi2_value:.3f}$ with {dof} degrees of freedom and $p = {p_chi:.4f}$, indicating that the association is {signif_text}.",
         "no_assoc_method": "Please select an association method in section **4. Association Analysis** above.",
         "tab_desc": "📋 Descriptive Statistics",
         "tab_vis": "📈 Visualizations",
@@ -134,6 +135,13 @@ LANGUAGES = {
         "pdf_download_button": "Download PDF Report",
         "desc_freq": "Frequency",
         "desc_perc": "Percentage (%)",
+        "desc_var": "Variable",
+        "desc_mean": "Mean",
+        "desc_median": "Median",
+        "desc_mode": "Mode",
+        "desc_min": "Min",
+        "desc_max": "Max",
+        "desc_std": "Std Dev",
         "vis_header": "### 6. Visualizations",
         "vis_age": "#### 6.1 Demographic Visualization",
         "vis_dist_x": "#### 6.2 Distribution of FOMO ($X_{total}$)",
@@ -143,6 +151,7 @@ LANGUAGES = {
         "download_chart_button": "Download {col_name} Bar Chart as PNG",
         "no_data_chart": "No valid data found for {col_name}.",
         "vis_stacked": "#### 6.6 Stacked Bar Chart of Item Response Percentages",
+        "corr_strength_header": "**Visual Interpretation of Correlation Strength**",
     },
     "Indonesia": {
         "title": "📊 Hubungan antara Fear of Missing Out (FOMO) dan Kecanduan Media Sosial pada Generasi Z",
@@ -195,13 +204,13 @@ LANGUAGES = {
         "corr_interpretation": "#### Interpretasi:",
         "corr_summary_template": "Menggunakan korelasi {method}, terdapat hubungan {direction} dan {strength} antara FOMO ($X_{total}$) dan kecanduan media sosial ($Y_{total}$), dengan $r = {r_value:.3f}$ dan $p = {p_value:.4f}$, menunjukkan bahwa asosiasi tersebut {signif_text}.",
         "corr_signif": "signifikan ($p < 0.05$)",
-        "corr_not_signif": "tidak signifikan ($p \ge 0.05$)",
+        "corr_not_signif": "tidak signifikan ($p \\ge 0.05$)",
         "corr_visual_check": "#### Pemeriksaan Visual: Scatterplot",
         "chi_result_header": "#### Hasil Uji Chi-square antara {x} dan {y}",
-        "chi_metric_chi2": "Nilai Chi-square ($\chi^2$)",
+        "chi_metric_chi2": "Nilai Chi-square ($\\chi^2$)",
         "chi_metric_dof": "Derajat Kebebasan (dof)",
         "chi_contingency": "#### Tabel Kontingensi",
-        "chi_summary_template": "Menggunakan uji Chi-square antara {x} dan {y}, statistik chi-square adalah $\chi^2 = {chi2_value:.3f}$ dengan {dof} derajat kebebasan dan $p = {p_chi:.4f}$, menunjukkan bahwa asosiasi tersebut {signif_text}.",
+        "chi_summary_template": "Menggunakan uji Chi-square antara {x} dan {y}, statistik chi-square adalah $\\chi^2 = {chi2_value:.3f}$ dengan {dof} derajat kebebasan dan $p = {p_chi:.4f}$, menunjukkan bahwa asosiasi tersebut {signif_text}.",
         "no_assoc_method": "Silakan pilih metode asosiasi di bagian **4. Analisis Asosiasi** di atas.",
         "tab_desc": "📋 Statistik Deskriptif",
         "tab_vis": "📈 Visualisasi",
@@ -246,6 +255,13 @@ LANGUAGES = {
         "pdf_download_button": "Unduh Laporan PDF",
         "desc_freq": "Frekuensi",
         "desc_perc": "Persentase (%)",
+        "desc_var": "Variabel",
+        "desc_mean": "Rata-rata",
+        "desc_median": "Median",
+        "desc_mode": "Modus",
+        "desc_min": "Min",
+        "desc_max": "Max",
+        "desc_std": "Std Deviasi",
         "vis_header": "### 6. Visualisasi",
         "vis_age": "#### 6.1 Visualisasi Demografi",
         "vis_dist_x": "#### 6.2 Distribusi FOMO ($X_{total}$)",
@@ -255,14 +271,23 @@ LANGUAGES = {
         "download_chart_button": "Unduh Diagram Batang {col_name} sebagai PNG",
         "no_data_chart": "Tidak ada data valid ditemukan untuk {col_name}.",
         "vis_stacked": "#### 6.6 Diagram Batang Bertumpuk Persentase Respon Item",
+        "corr_strength_header": "**Interpretasi Kekuatan Korelasi Visual**",
     }
 }
 
-# 3. SELECT LANGUAGE
+# 3. SELECT LANGUAGE (Default ke Indonesia)
 st.sidebar.header("🌍 Language / Bahasa")
-selected_lang = st.sidebar.radio("Choose language:", options=["English", "Indonesia"], index=1)
+selected_lang = st.sidebar.radio("Choose language / Pilih bahasa:", options=["English", "Indonesia"], index=1)
 lang = LANGUAGES[selected_lang]
 
+# Sesuaikan RESPONSE_LABELS dengan bahasa terpilih (untuk tampilan)
+RESPONSE_LABELS = {
+    1: f"1 (SD: Strongly Disagree / Sangat Tidak Setuju)",
+    2: f"2 (D: Disagree / Tidak Setuju)",
+    3: f"3 (N: Neutral / Netral)",
+    4: f"4 (A: Agree / Setuju)",
+    5: f"5 (SA: Strongly Agree / Sangat Setuju)",
+} if selected_lang == "Indonesia" else RESPONSE_LABELS_EN
 
 # ------------------------------------------------------------------
 # PAGE CONFIG
@@ -327,7 +352,6 @@ if AGE_COLUMN is None:
 
 st.write(f"{lang['age_col_detected']} **{AGE_COLUMN}**")
 
-# Allowed age categories
 allowed_age_categories = [
     "13–18 years / tahun",
     "19–23 years / tahun",
@@ -340,7 +364,7 @@ allowed_age_categories = [
 before_clean = len(df)
 
 # Filter for allowed age categories
-df = df[df[AGE_COLUMN].isin(allowed_age_categories)]
+df = df[df[AGE_COLUMN].astype(str).isin(allowed_age_categories)]
 
 after_clean = len(df)
 
@@ -366,7 +390,7 @@ st.dataframe(df.head())
 # Summary Age_Group (frequency + percentage)
 age_counts = df["Age_Group"].value_counts().sort_index()
 age_demo_df = pd.DataFrame({
-    "Age Group / Kelompok Usia": age_counts.index,
+    f"Age Group / {LANGUAGES['Indonesia']['age_dist_header'].strip('*')}": age_counts.index,
     lang["desc_freq"]: age_counts.values,
 })
 age_demo_df[lang["desc_perc"]] = (age_demo_df[lang["desc_freq"]] / age_demo_df[lang["desc_freq"]].sum() * 100).round(2)
@@ -383,7 +407,7 @@ gender_demo_df = None
 if GENDER_COLUMN is not None:
     gender_counts = df[GENDER_COLUMN].value_counts().sort_index()
     gender_demo_df = pd.DataFrame({
-        "Gender / Jenis Kelamin": gender_counts.index,
+        f"Gender / {LANGUAGES['Indonesia']['gender_dist_header'].strip('*')}": gender_counts.index,
         lang["desc_freq"]: gender_counts.values,
     })
     gender_demo_df[lang["desc_perc"]] = (gender_demo_df[lang["desc_freq"]] / gender_demo_df[lang["desc_freq"]].sum() * 100).round(2)
@@ -444,7 +468,6 @@ if not all(c in df.columns for c in fixed_x_all + fixed_y_all):
     renamed = {}
 
     for code, phrase in PHRASES.items():
-        # Use the base code (X1, Y5, etc.) for renaming
         base_code = code.split('_')[0] 
         phrase_low = phrase.lower()
         for col, col_low in lower_cols.items():
@@ -507,13 +530,17 @@ for col in x_items + y_items:
 # ------------------------------------------------------------------
 st.subheader(lang["comp_header"])
 
+comp_method_options = [
+    "Mean of items (recommended)" if selected_lang == "English" else "Rata-rata item (direkomendasikan)", 
+    "Sum of items" if selected_lang == "English" else "Jumlah item"
+]
 comp_method = st.radio(
     lang["comp_method"],
-    ["Mean of items (recommended)", "Sum of items"],
+    comp_method_options,
     horizontal=True,
 )
 
-if comp_method.startswith("Mean"):
+if comp_method.startswith("Mean") or comp_method.startswith("Rata-rata"):
     df["X_total"] = df[x_items].mean(axis=1)
     df["Y_total"] = df[y_items].mean(axis=1)
 else:
@@ -531,14 +558,23 @@ mean_y = valid_xy["Y_total"].mean()
 # ------------------------------------------------------------------
 
 st.subheader(lang["normality_header"])
-shapiro_x = stats.shapiro(valid_xy["X_total"])
-shapiro_y = stats.shapiro(valid_xy["Y_total"])
-normal_x = "Normal" if shapiro_x.pvalue >= 0.05 else "Not Normal"
-normal_y = "Normal" if shapiro_y.pvalue >= 0.05 else "Not Normal"
-st.write("### Result:")
+
+if n_valid < 3:
+    st.warning("Not enough data for Shapiro-Wilk test (N < 3). Skipping.")
+    normal_x = "Not Applicable"
+    normal_y = "Not Applicable"
+    shapiro_x = type('ShapiroResult', (object,), {'statistic': np.nan, 'pvalue': np.nan})()
+    shapiro_y = type('ShapiroResult', (object,), {'statistic': np.nan, 'pvalue': np.nan})()
+else:
+    shapiro_x = stats.shapiro(valid_xy["X_total"])
+    shapiro_y = stats.shapiro(valid_xy["Y_total"])
+    normal_x = lang["normality_normal"] if shapiro_x.pvalue >= 0.05 else lang["normality_not_normal"]
+    normal_y = lang["normality_normal"] if shapiro_y.pvalue >= 0.05 else lang["normality_not_normal"]
+
+st.write(lang["normality_result"])
 
 result_norm = pd.DataFrame({
-    "Variable": ["X_total", "Y_total"],
+    lang["desc_var"]: ["X_total", "Y_total"],
     "Shapiro-Wilk Statistic": [shapiro_x.statistic, shapiro_y.statistic],
     "p-value": [shapiro_x.pvalue, shapiro_y.pvalue],
     "Normality": [normal_x, normal_y]
@@ -553,7 +589,6 @@ else:
     recommended_method = "Spearman Rank Correlation"
 
 st.info(f"{lang['normality_reco']} **{recommended_method}**")
-
 
 m1, m2, m3 = st.columns(3)
 m1.metric(lang["valid_resp_metric"], n_valid)
@@ -573,21 +608,21 @@ def descriptive_table(data: pd.DataFrame, cols):
         mode_val = mode_vals.iloc[0] if not mode_vals.empty else np.nan
         rows.append(
             {
-                "Variable / Variabel": col,
+                lang["desc_var"]: col,
                 "N": len(s),
-                "Mean / Rata-rata": s.mean(),
-                "Median / Median": s.median(),
-                "Mode / Modus": mode_val,
-                "Min / Minimum": s.min(),
-                "Max / Maksimum": s.max(),
-                "Std Dev / Std Deviasi": s.std(ddof=1),
+                lang["desc_mean"]: s.mean(),
+                lang["desc_median"]: s.median(),
+                lang["desc_mode"]: mode_val,
+                lang["desc_min"]: s.min(),
+                lang["desc_max"]: s.max(),
+                lang["desc_std"]: s.std(ddof=1),
             }
         )
-    return pd.DataFrame(rows).set_index("Variable / Variabel").round(3)
+    return pd.DataFrame(rows).set_index(lang["desc_var"]).round(3)
 
 
-# NEW HELPER FUNCTION: To create and display individual bar charts
-def create_item_bar_chart(df, col_name):
+# HELPER: To create and display individual bar charts
+def create_item_bar_chart(df, col_name, lang):
     s_freq = df[col_name].dropna()
     freq = s_freq.value_counts().sort_index()
 
@@ -597,8 +632,8 @@ def create_item_bar_chart(df, col_name):
         
     fig_bar, ax_bar = plt.subplots()
     
-    # Map numerical score to label for better visualization (if applicable)
-    labels = [RESPONSE_LABELS.get(int(i), str(i).split(' ')[0]) for i in freq.index.astype(int)]
+    # Map numerical score to label for better visualization
+    labels = [RESPONSE_LABELS.get(int(i), str(int(i))) for i in freq.index.astype(int)]
     
     ax_bar.bar(labels, freq.values, color='skyblue', edgecolor='black')
     ax_bar.set_xlabel(col_name)
@@ -633,19 +668,19 @@ assoc_method = st.radio(
 )
 
 assoc_stats = {"type": "none"}
-assoc_summary_text = "" # Initialize to empty string or a default message
+assoc_summary_text = lang["no_assoc_method"]
 
 if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
     
-    # Tambahkan try/except untuk mengatasi kemungkinan masalah data (misalnya data kosong)
     try:
         x_corr = valid_xy["X_total"]
         y_corr = valid_xy["Y_total"]
 
         if x_corr.empty or y_corr.empty:
-            assoc_summary_text = "Data valid untuk korelasi kosong. Cek data Anda."
+            assoc_summary_text = "Not enough valid data for correlation calculation. Check your filtered data."
             st.error(assoc_summary_text)
-            st.stop()
+            # Re-raise error to prevent proceeding with empty data
+            raise ValueError(assoc_summary_text)
             
         if assoc_method.startswith("Pearson"):
             r_value, p_value = stats.pearsonr(x_corr, y_corr)
@@ -700,31 +735,74 @@ if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
             signif_text=signif_text,
         )
         
-        # Tambahkan visualisasi interpretasi kekuatan di sini
-        st.markdown(f"**Visual Interpretation of Correlation Strength / Interpretasi Kekuatan Korelasi Visual**")
-        # TAG GAMBAR INSTRUKTIF
-        st.markdown("")
-        
     except Exception as e:
-        assoc_summary_text = f"Gagal menghitung korelasi. Detail: {e}"
+        assoc_summary_text = f"Failed to calculate correlation. Error: {e}"
         st.error(assoc_summary_text)
 
+
+elif assoc_method.startswith("Chi-square"):
+    st.markdown(lang["chi_header"])
+    
+    # Select only the original Likert columns (X1-X5, Y1-Y5) for Chi-Square
+    cat_options = [c for c in (x_items + y_items) if c in df.columns]
+
+    if not cat_options:
+        st.error("No valid categorical items (X1-X5 or Y1-Y5) available for Chi-square test.")
+        st.stop()
+        
+    chi_x_col = st.selectbox(lang["chi_x_select"], cat_options, key="chi_x")
+    chi_y_col = st.selectbox(lang["chi_y_select"], cat_options, key="chi_y")
+
+    contingency = pd.crosstab(df[chi_x_col], df[chi_y_col])
+    
+    if contingency.empty or contingency.shape[0] <= 1 or contingency.shape[1] <= 1:
+        st.error("Contingency table is too small (e.g., only one row/column) to perform Chi-square test.")
+        assoc_stats = {"type": "none"}
+        st.stop()
+        
+    chi2_value, p_chi, dof, expected = stats.chi2_contingency(contingency)
+    signif_text = lang["corr_signif"] if p_chi < 0.05 else lang["corr_not_signif"]
+
+    assoc_stats = {
+        "type": "chi-square",
+        "method": "Chi-square",
+        "chi2": chi2_value,
+        "p": p_chi,
+        "dof": dof,
+        "x": chi_x_col,
+        "y": chi_y_col,
+        "signif_text": signif_text,
+    }
+
+    assoc_summary_text = lang["chi_summary_template"].format(
+        x=chi_x_col, 
+        y=chi_y_col, 
+        chi2_value=chi2_value, 
+        dof=dof, 
+        p_chi=p_chi, 
+        signif_text=signif_text
+    )
+
+
 # ------------------------------------------------------------------
-# 7. TABS (Lanjutkan ke bagian ini)
+# 7. TABS
 # ------------------------------------------------------------------
 
 # Prepare Age Group Bar Chart (for tab_vis & pdf)
 fig_age_bar, ax_age_bar = plt.subplots(figsize=(8, 5))
 age_counts.plot(kind='bar', ax=ax_age_bar, color='skyblue', edgecolor='black')
 ax_age_bar.set_title(lang["plot_age_title"])
-ax_age_bar.set_xlabel("Age Group / Kelompok Usia")
+ax_age_bar.set_xlabel(f"Age Group / {LANGUAGES['Indonesia']['age_dist_header'].strip('*')}")
 ax_age_bar.set_ylabel(lang["desc_freq"])
 ax_age_bar.tick_params(axis='x', rotation=45)
 plt.tight_layout()
 buf_age_bar = io.BytesIO()
 fig_age_bar.savefig(buf_age_bar, format="png", bbox_inches="tight")
 buf_age_bar.seek(0)
-plt.close(fig_age_bar) # Close now after saving to buffer
+plt.close(fig_age_bar)
+
+# NOTE: fig_hist_x and fig_hist_y must be recreated if needed in PDF/Analysis tab
+# but we need to keep the data processing clean.
 
 tab_desc, tab_vis, tab_assoc, tab_pdf = st.tabs(
     [lang["tab_desc"], lang["tab_vis"], lang["tab_assoc"], lang["tab_pdf"]]
@@ -775,7 +853,7 @@ with tab_desc:
                     labeled_index = freq_table.index.map(lambda x: RESPONSE_LABELS.get(x, x))
                     freq_table.index = labeled_index
                     st.caption(lang["likert_caption"])
-            except NameError:
+            except:
                 pass 
 
         st.dataframe(freq_table)
@@ -787,9 +865,8 @@ with tab_vis:
 
     # 6.1 Age Group Bar Chart
     st.markdown(lang["vis_age"])
-    st.image(buf_age_bar) # Use the image buffer
+    st.image(buf_age_bar)
     
-
     # 6.2 Distribution of X_total
     st.markdown(lang["vis_dist_x"])
     fig_hist_x, ax_hist_x = plt.subplots()
@@ -800,7 +877,6 @@ with tab_vis:
     st.pyplot(fig_hist_x)
     plt.close(fig_hist_x)
     
-
     # 6.3 Distribution of Y_total
     st.markdown(lang["vis_dist_y"])
     fig_hist_y, ax_hist_y = plt.subplots()
@@ -811,29 +887,24 @@ with tab_vis:
     st.pyplot(fig_hist_y)
     plt.close(fig_hist_y)
     
-
     # 6.4 Association Scatterplot
     st.markdown(lang["vis_assoc"])
     fig_assoc_scatter, ax_assoc_scatter = plt.subplots()
     ax_assoc_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
-    
-    # Add regression line
     m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
     ax_assoc_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
-    
     ax_assoc_scatter.set_xlabel("$X_{total}$ (FOMO)")
     ax_assoc_scatter.set_ylabel("$Y_{total}$ (Social media addiction)")
     ax_assoc_scatter.set_title(lang["plot_scatter_title"])
     st.pyplot(fig_assoc_scatter)
     plt.close(fig_assoc_scatter)
     
-
     # 6.5 Item Frequency Bar Charts
     st.markdown(lang["vis_item_freq"])
     for var in x_items + y_items:
-        create_item_bar_chart(df, var)
+        create_item_bar_chart(df, var, lang)
 
-    # 6.6 Stacked Bar Chart (NEW)
+    # 6.6 Stacked Bar Chart
     st.markdown(lang["vis_stacked"])
     all_items = x_items + y_items
     freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
@@ -852,13 +923,13 @@ with tab_vis:
     ax_stacked.set_xlabel("Survey Item / Item Kuesioner")
     ax_stacked.set_ylabel(lang["desc_perc"])
     # Map the legend keys to the short labels (1->SD, 5->SA)
-    legend_labels = {i: RESPONSE_LABELS[i].split(' ')[0] for i in range(1, 6)}
-    ax_stacked.legend(title="Response Score / Skor Respon", labels=[legend_labels[col] for col in freq_data.columns], bbox_to_anchor=(1.05, 1), loc='upper left')
+    legend_labels_short = {i: RESPONSE_LABELS[i].split(' ')[0] for i in range(1, 6)}
+    ax_stacked.legend(title="Response Score / Skor Respon", labels=[legend_labels_short[col] for col in freq_data.columns], bbox_to_anchor=(1.05, 1), loc='upper left')
     ax_stacked.tick_params(axis='x', rotation=45)
     plt.tight_layout()
     st.pyplot(fig_stacked)
     plt.close(fig_stacked)
-    
+
 
 # --- Test Result/analysis ------
 
@@ -889,7 +960,13 @@ with tab_assoc:
 
         st.markdown(lang["corr_interpretation"])
         st.success(assoc_summary_text)
-
+        
+        # Tambahkan diagram instruktif interpretasi korelasi di sini
+        st.markdown("---")
+        st.markdown(lang["corr_strength_header"])
+        # Diagram instruktif interpretasi korelasi
+        st.markdown("")
+        
         st.markdown("---")
         st.markdown(lang["corr_visual_check"])
         
@@ -934,12 +1011,10 @@ with tab_assoc:
         contingency = pd.crosstab(df[assoc_stats['x']], df[assoc_stats['y']])
         st.dataframe(contingency)
         
-
-
     else:
         st.warning(lang["no_assoc_method"])
 
-# ------------------ TAB PDF REPORT (FINAL MODIFIED VERSION) ------------------
+# ------------------ TAB PDF REPORT ------------------
 with tab_pdf:
     st.markdown(f"### {lang['pdf_header']}")
 
@@ -952,11 +1027,14 @@ with tab_pdf:
     # 2. PILIHAN JUMLAH GRAFIK HORIZONTAL
     st.markdown("---")
     st.write(lang["pdf_vis_settings"])
+    
+    # Pilihan 1/2/3 dihilangkan karena ReportLab sering bermasalah dengan tata letak kompleks
     cols_per_row = st.radio(
         lang["pdf_cols_per_row"],
         options=[1], 
         index=0, 
-        horizontal=True
+        horizontal=True,
+        format_func=lambda x: f"{x}"
     )
     
     st.markdown("---")
@@ -986,10 +1064,13 @@ with tab_pdf:
         temp_imgs = []
         
         # Helper function to create table for ReportLab
-        def add_table(title, df_table):
+        def add_table(title, df_table, index_name=lang["desc_var"]):
             story.append(Paragraph(title, styles["Heading3"]))
-            df_reset = df_table.reset_index()
-            # Handle bilingual headers for the table
+            # Handle bilingual headers
+            df_table_copy = df_table.copy()
+            df_table_copy.index.name = index_name
+            df_reset = df_table_copy.reset_index()
+            
             table_data = [df_reset.columns.tolist()] + df_reset.values.tolist()
             tbl = Table(table_data)
             tbl.setStyle(
@@ -1016,7 +1097,7 @@ with tab_pdf:
         
         # 1. PDF INITIAL CONFIGURATION
         safe_filename = "".join(c for c in pdf_filename if c.isalnum() or c in (' ', '_')).rstrip()
-        final_filename = (safe_filename if safe_filename else "Laporan_Analisis") + ".pdf"
+        final_filename = (safe_filename if safe_filename else "Analysis_Report") + ".pdf"
         
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer)
@@ -1031,21 +1112,21 @@ with tab_pdf:
         story.append(Spacer(1, 12))
 
         # Data Cleaning Summary
-        story.append(Paragraph("Data Cleaning (Age Filter & Grouping): / Pembersihan Data (Filter & Pengelompokan Usia):", styles["Heading3"]))
+        story.append(Paragraph(lang["clean_summary"].strip('*'), styles["Heading3"]))
         story.append(Paragraph(
-            "Only respondents whose age category was 13–18 years, 19–23 years, or 24–28 years were included in the analysis to represent Generation Z. Other age categories such as below 13 or above 28 years were excluded. / Hanya responden dengan kategori usia 13–18 tahun, 19–23 tahun, atau 24–28 tahun yang diikutsertakan dalam analisis untuk merepresentasikan Generasi Z. Kategori usia lain seperti di bawah 13 atau di atas 28 tahun dikeluarkan.", 
+            "Only respondents whose age category was 13–18 years, 19–23 years, or 24–28 years were included in the analysis to represent Generation Z. Other age categories such as below 13 or above 28 years were excluded.", 
             styles["Normal"]))
         story.append(Spacer(1, 8))
         story.append(Paragraph(f"{lang['resp_before']} {before_clean}<br/>{lang['resp_after']} {after_clean}<br/>{lang['resp_removed']} {before_clean - after_clean}", styles["Normal"]))
         story.append(Spacer(1, 12))
 
         # Tables (Conditional)
-        if include_normality: add_table(lang["normality_header"], result_norm)
+        if include_normality: add_table(lang["normality_header"], result_norm, lang["desc_var"])
         if include_demo: 
-            add_table(lang["age_dist_header"], age_demo_df)
-            if gender_demo_df is not None: add_table(lang["gender_dist_header"], gender_demo_df)
-        if include_items: add_table(lang["desc_item_header"], desc_items)
-        if include_comp: add_table(lang["desc_comp_header"], desc_comp)
+            add_table(lang["age_dist_header"].strip('*'), age_demo_df, age_demo_df.columns[0])
+            if gender_demo_df is not None: add_table(lang["gender_dist_header"].strip('*'), gender_demo_df, gender_demo_df.columns[0])
+        if include_items: add_table(lang["desc_item_header"].strip('#'), desc_items)
+        if include_comp: add_table(lang["desc_comp_header"].strip('#'), desc_comp)
         if include_corr:
             story.append(Paragraph(lang["pdf_include_corr"], styles["Heading3"]))
             story.append(Paragraph(assoc_summary_text, styles["Normal"]))
@@ -1054,7 +1135,6 @@ with tab_pdf:
         
         # 3. COLLECT AND RENDER PLOTS
         
-        # Calculate width and height based on the number of columns
         plot_width = 450
         plot_height = 300
         effective_page_width = 500.0
@@ -1063,12 +1143,12 @@ with tab_pdf:
         
         plots_to_render = []
         
-        # 1. Age Group Bar Chart (Re-generate as it was closed after saving to buffer)
+        # 1. Age Group Bar Chart 
         if include_age_plot:
             fig_pdf_age, ax_pdf_age = plt.subplots(figsize=(8, 5))
             age_counts.plot(kind='bar', ax=ax_pdf_age, color='skyblue', edgecolor='black')
             ax_pdf_age.set_title(lang["plot_age_title"])
-            ax_pdf_age.set_xlabel("Age Group / Kelompok Usia")
+            ax_pdf_age.set_xlabel(f"Age Group / {LANGUAGES['Indonesia']['age_dist_header'].strip('*')}")
             ax_pdf_age.set_ylabel(lang["desc_freq"])
             ax_pdf_age.tick_params(axis='x', rotation=45)
             plt.tight_layout()
@@ -1082,7 +1162,7 @@ with tab_pdf:
                 s_freq = df[var].dropna()
                 freq = s_freq.value_counts().sort_index()
                 
-                labels = [RESPONSE_LABELS.get(int(i), str(i).split(' ')[0]) for i in freq.index.astype(int)]
+                labels = [RESPONSE_LABELS.get(int(i), str(int(i))) for i in freq.index.astype(int)]
 
                 ax_pdf_bar.bar(labels, freq.values)
                 ax_pdf_bar.set_xlabel(var)
@@ -1094,7 +1174,6 @@ with tab_pdf:
                 
         # 3. STACKED BAR CHART
         if include_stacked_plot:
-            # Recreate fig_stacked (it was closed after tab_vis)
             all_items = x_items + y_items
             freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
             freq_data = freq_data.fillna(0).sort_index()
@@ -1111,8 +1190,8 @@ with tab_pdf:
             ax_stacked.set_title(lang["plot_stacked_title"])
             ax_stacked.set_xlabel("Survey Item / Item Kuesioner")
             ax_stacked.set_ylabel(lang["desc_perc"])
-            legend_labels = {i: RESPONSE_LABELS[i].split(' ')[0] for i in range(1, 6)}
-            ax_stacked.legend(title="Response Score / Skor Respon", labels=[legend_labels[col] for col in freq_data.columns], bbox_to_anchor=(1.05, 1), loc='upper left')
+            legend_labels_short = {i: RESPONSE_LABELS[i].split(' ')[0] for i in range(1, 6)}
+            ax_stacked.legend(title="Response Score / Skor Respon", labels=[legend_labels_short[col] for col in freq_data.columns], bbox_to_anchor=(1.05, 1), loc='upper left')
             ax_stacked.tick_params(axis='x', rotation=45)
             plt.tight_layout()
             
@@ -1150,7 +1229,7 @@ with tab_pdf:
 
         # --- RENDERING PLOTS HORIZONTALLY (IN REPORTLAB TABLE) ---
         if plots_to_render:
-            story.append(Paragraph(lang["pdf_vis_header"], styles["Heading2"]))
+            story.append(Paragraph(lang["pdf_vis_header"].strip('*'), styles["Heading2"]))
             
             rows = []
             
