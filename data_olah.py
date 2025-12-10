@@ -522,11 +522,6 @@ else:
 
 st.success(lang["comp_success"])
 
-valid_xy = df[["X_total", "Y_total"]].dropna() 
-n_valid = valid_xy.shape[0]
-mean_x = valid_xy["X_total"].mean()
-mean_y = valid_xy["Y_total"].mean()
-
 # --- START DEBUGGING BLOCK ---
 st.subheader("DEBUG: Cek Keberadaan dan Isi Kolom Total")
 if "X_total" not in df.columns or "Y_total" not in df.columns:
