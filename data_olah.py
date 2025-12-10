@@ -45,7 +45,7 @@ st.sidebar.header("👥 Group Members")
 st.sidebar.write("- Delon Raphael Andianto (004202200050)")
 st.sidebar.write("- Kallista Viasta (004202200039)")
 st.sidebar.write("- Nabila Putri Amalia (004202200049)")
-st.sidebar.write("- Pingkan R G Lumingkewas (004202200035)")
+st.sidebar.write("- Pingkan R G Lumingkewas (004202200035)")
 
 # ------------------------------------------------------------------
 # 1. UPLOAD DATASET
@@ -552,6 +552,138 @@ with tab_desc:
 
         st.dataframe(freq_table)
         st.markdown("---") # Garis pemisah antar item (opsional)
+
+# ------------------ TAB VISUALIZATIONS ------------------
+with tab_vis:
+    st.markdown("### 6. Visualizations")
+    
+    # 1. Age Group Distribution Bar Chart
+    st.markdown("#### 6.1 Distribution of Respondents by Age Group")
+    st.pyplot(fig_age_bar)
+    st.download_button(
+        "Download Age Group Bar Chart as PNG",
+        data=buf_age_bar,
+        file_name="age_group_distribution.png",
+        mime="image/png",
+    )
+    
+    st.markdown("---")
+    
+    # 2. Histogram X_total
+    st.markdown("#### 6.2 Distribution of X_total (FOMO)")
+    st.pyplot(fig_hist_x)
+    buf_hist_x = io.BytesIO()
+    fig_hist_x.savefig(buf_hist_x, format="png", bbox_inches="tight")
+    buf_hist_x.seek(0)
+    st.download_button(
+        "Download X_total Histogram as PNG",
+        data=buf_hist_x,
+        file_name="x_total_histogram.png",
+        mime="image/png",
+    )
+    
+    st.markdown("---")
+    
+    # 3. Histogram Y_total
+    st.markdown("#### 6.3 Distribution of Y_total (Social Media Addiction)")
+    st.pyplot(fig_hist_y)
+    buf_hist_y = io.BytesIO()
+    fig_hist_y.savefig(buf_hist_y, format="png", bbox_inches="tight")
+    buf_hist_y.seek(0)
+    st.download_button(
+        "Download Y_total Histogram as PNG",
+        data=buf_hist_y,
+        file_name="y_total_histogram.png",
+        mime="image/png",
+    )
+    
+    st.markdown("---")
+    
+    # 4. Scatterplot X_total vs Y_total
+    st.markdown("#### 6.4 Scatterplot: X_total (FOMO) vs Y_total (Social Media Addiction)")
+    fig_scatter, ax_scatter = plt.subplots()
+    ax_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
+    
+    # Tambahkan garis regresi
+    m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+    ax_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--', label='Regression line')
+    
+    ax_scatter.set_xlabel("X_total (FOMO)")
+    ax_scatter.set_ylabel("Y_total (Social media addiction)")
+    ax_scatter.set_title("Scatterplot: FOMO vs Social Media Addiction")
+    ax_scatter.legend()
+    st.pyplot(fig_scatter)
+    
+    buf_scatter = io.BytesIO()
+    fig_scatter.savefig(buf_scatter, format="png", bbox_inches="tight")
+    buf_scatter.seek(0)
+    st.download_button(
+        "Download Scatterplot as PNG",
+        data=buf_scatter,
+        file_name="scatterplot_x_vs_y.png",
+        mime="image/png",
+    )
+    plt.close(fig_scatter)
+    
+    st.markdown("---")
+    
+    # 5. Frequency Bar Charts for Each Item (X1-Y5)
+    st.markdown("#### 6.5 Frequency Bar Charts for Each Survey Item")
+    st.caption("Grafik batang menunjukkan distribusi jawaban untuk setiap item kuesioner.")
+    
+    all_items = x_items + y_items
+    
+    # Gunakan fungsi helper yang sudah ada
+    for item_code in all_items:
+        st.markdown(f"##### Item: **{item_code}**")
+        
+        # Tampilkan deskripsi item
+        if item_code in FOMO_LABELS:
+            st.caption(f"*{FOMO_LABELS[item_code]}*")
+        elif item_code in ADDICTION_LABELS:
+            st.caption(f"*{ADDICTION_LABELS[item_code]}*")
+        
+        # Buat dan tampilkan bar chart
+        create_item_bar_chart(df, item_code)
+        st.markdown("---")
+    
+    # 6. Stacked Bar Chart (All Items Response Percentage)
+    st.markdown("#### 6.6 Stacked Bar Chart: Response Percentage Across All Items")
+    st.caption("Grafik ini menunjukkan persentase distribusi jawaban untuk semua item kuesioner (X1-Y5).")
+    
+    freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
+    freq_data = freq_data.fillna(0).sort_index()
+    
+    # Pastikan semua kolom response (1-5) ada
+    for i in range(1, 6):
+        if i not in freq_data.columns:
+            freq_data[i] = 0.0
+    freq_data = freq_data.sort_index(axis=1)
+    
+    fig_stacked, ax_stacked = plt.subplots(figsize=(12, 6))
+    freq_data.plot(kind='bar', stacked=True, ax=ax_stacked, 
+                   color=plt.cm.RdYlBu(np.linspace(0.1, 0.9, 5)))
+    
+    ax_stacked.set_title("Response Percentage Across All Survey Items (X & Y)")
+    ax_stacked.set_xlabel("Survey Item")
+    ax_stacked.set_ylabel("Percentage (%)")
+    ax_stacked.legend(title="Response Score", labels=[RESPONSE_LABELS[i] for i in range(1, 6)], 
+                      bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax_stacked.tick_params(axis='x', rotation=45)
+    plt.tight_layout()
+    
+    st.pyplot(fig_stacked)
+    
+    buf_stacked = io.BytesIO()
+    fig_stacked.savefig(buf_stacked, format="png", bbox_inches="tight")
+    buf_stacked.seek(0)
+    st.download_button(
+        "Download Stacked Bar Chart as PNG",
+        data=buf_stacked,
+        file_name="stacked_bar_chart_all_items.png",
+        mime="image/png",
+    )
+    plt.close(fig_stacked)
 
 # --- Test Result/analysis ------
 
