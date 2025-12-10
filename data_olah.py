@@ -143,118 +143,6 @@ LANGUAGES = {
         "download_chart_button": "Download {col_name} Bar Chart as PNG",
         "no_data_chart": "No valid data found for {col_name}.",
         "vis_stacked": "#### 6.6 Stacked Bar Chart of Item Response Percentages",
-    },
-    "Indonesia": {
-        "title": "📊 Hubungan antara Fear of Missing Out (FOMO) dan Kecanduan Media Sosial pada Generasi Z",
-        "caption": "Statistika 1 • Kelas 1",
-        "sidebar_header": "👥 Anggota Kelompok",
-        "upload_header": "1. Unggah Dataset",
-        "upload_info": "Silakan unggah dataset terlebih dahulu.",
-        "preview_data": "Pratinjau Data (5 baris pertama, sebelum pembersihan usia):",
-        "all_columns": "Lihat semua nama kolom (header):",
-        "age_col_error": "Kolom usia tidak ditemukan. Pastikan ada kolom dengan nama mengandung 'Age' atau 'Umur'.",
-        "age_col_detected": "Kolom usia terdeteksi sebagai:",
-        "clean_success": "✅ Pembersihan data & pengelompokan usia selesai.",
-        "clean_summary": "**Ringkasan Pembersihan Data:**",
-        "resp_before": "- Responden sebelum pembersihan:",
-        "resp_after": "- Responden setelah pembersihan (hanya kelompok usia 13–28 tahun):",
-        "resp_removed": "- Responden yang dihapus:",
-        "age_dist": "**Distribusi Kelompok Usia:**",
-        "preview_after": "Pratinjau data setelah pembersihan & pengelompokan usia:",
-        "select_header": "2. Pilih Variabel X dan Y (set item tetap)",
-        "fomo_multiselect": "FOMO (X) – Pilih Item:",
-        "fomo_caption": "Item FOMO yang dipilih:",
-        "addict_multiselect": "Kecanduan Media Sosial (Y) – Pilih Item:",
-        "addict_caption": "Item Kecanduan yang dipilih:",
-        "min_select_warn": "Minimum Pilih 1 item X dan 1 item Y.",
-        "col_missing_error": "Beberapa kolom pertanyaan tidak ditemukan.",
-        "safest_way": "Cara paling aman: ubah header di Excel/Sheets menjadi X1..X5 dan Y1..Y5, lalu unggah ulang.",
-        "current_headers": "Header Saat Ini:",
-        "comp_header": "3. Skor Komposit ($X_{total}$ & $Y_{total}$)",
-        "comp_method": "Metode skor komposit:",
-        "comp_success": "✅ Skor komposit $X_{total}$ dan $Y_{total}$ telah berhasil dibuat.",
-        "normality_header": "Uji Normalitas (Shapiro–Wilk)",
-        "normality_result": "### Hasil:",
-        "normality_normal": "Normal",
-        "normality_not_normal": "Tidak Normal",
-        "normality_reco": "✅ Metode asosiasi yang direkomendasikan berdasarkan uji normalitas:",
-        "valid_resp_metric": "Responden valid (setelah filter usia)",
-        "avg_fomo_metric": "Rata-rata FOMO ($X_{total}$)",
-        "avg_addict_metric": "Rata-rata Kecanduan ($Y_{total}$)",
-        "assoc_header": "4. Analisis Asosiasi – Pilih Satu Metode",
-        "assoc_method_radio": "Metode asosiasi untuk X dan Y (berdasarkan rekomendasi normalitas):",
-        "chi_header": "**Uji Chi-square – pilih X dan Y kategorik (Likert).**",
-        "chi_x_select": "Variabel X Kategorikal:",
-        "chi_y_select": "Variabel Y Kategorikal:",
-        "corr_result_header": "#### Hasil Korelasi {method}",
-        "corr_metric_r": "Koefisien Korelasi ($r$)",
-        "corr_metric_p": "Nilai $p$",
-        "corr_metric_dir": "Arah",
-        "corr_metric_strength": "Kekuatan",
-        "corr_metric_signif": "Signifikansi",
-        "corr_interpretation": "#### Interpretasi:",
-        "corr_summary_template": "Menggunakan korelasi {method}, terdapat hubungan {direction} dan {strength} antara FOMO ($X_{total}$) dan kecanduan media sosial ($Y_{total}$), dengan $r = {r_value:.3f}$ dan $p = {p_value:.4f}$, menunjukkan bahwa asosiasi tersebut {signif_text}.",
-        "corr_signif": "signifikan ($p < 0.05$)",
-        "corr_not_signif": "tidak signifikan ($p \ge 0.05$)",
-        "corr_visual_check": "#### Pemeriksaan Visual: Scatterplot",
-        "chi_result_header": "#### Hasil Uji Chi-square antara {x} dan {y}",
-        "chi_metric_chi2": "Nilai Chi-square ($\chi^2$)",
-        "chi_metric_dof": "Derajat Kebebasan (dof)",
-        "chi_contingency": "#### Tabel Kontingensi",
-        "chi_summary_template": "Menggunakan uji Chi-square antara {x} dan {y}, statistik chi-square adalah $\chi^2 = {chi2_value:.3f}$ dengan {dof} derajat kebebasan dan $p = {p_chi:.4f}$, menunjukkan bahwa asosiasi tersebut {signif_text}.",
-        "no_assoc_method": "Silakan pilih metode asosiasi di bagian **4. Analisis Asosiasi** di atas.",
-        "tab_desc": "📋 Statistik Deskriptif",
-        "tab_vis": "📈 Visualisasi",
-        "tab_assoc": "🔗 Hasil Analisis",
-        "tab_pdf": "📄 Laporan PDF",
-        "demo_header": "### 5.0 Ringkasan Demografi",
-        "age_dist_header": "**Distribusi Kelompok Usia**",
-        "gender_dist_header": "**Distribusi Jenis Kelamin**",
-        "gender_not_found": "Kolom Jenis Kelamin tidak terdeteksi, sehingga distribusi jenis kelamin tidak ditampilkan.",
-        "desc_item_header": "### 5.1 Statistik Deskriptif – Setiap Item Kuesioner",
-        "desc_comp_header": "### 5.2 Statistik Deskriptif – Skor Komposit ($X_{total}$ & $Y_{total}$)",
-        "freq_header": "### 5.3 Tabel Frekuensi & Persentase (Semua Item X dan Y)",
-        "freq_caption": "Tabel menunjukkan distribusi frekuensi untuk setiap item kuesioner dari X1 hingga Y5. Grafik tersedia di tab '📈 Visualisasi'.",
-        "freq_item_header": "#### Hasil untuk Item: **{var_freq}**",
-        "likert_caption": "Keterangan: SD = Sangat Tidak Setuju, SA = Sangat Setuju.",
-        "pdf_header": "8. Ekspor Laporan PDF",
-        "pdf_filename_input": "Nama file PDF yang akan diunduh (tanpa .pdf):",
-        "pdf_vis_settings": "**Pengaturan Tata Letak Visualisasi dalam PDF:**",
-        "pdf_cols_per_row": "Jumlah Grafik per Baris:",
-        "pdf_select_content": "Pilih konten yang ingin dimasukkan ke PDF:",
-        "pdf_include_items": "Statistik deskriptif – item (X & Y)",
-        "pdf_include_comp": "Statistik deskriptif – skor komposit ($X_{total}$ & $Y_{total}$)",
-        "pdf_include_corr": "Ringkasan analisis asosiasi",
-        "pdf_include_demo": "Ringkasan demografi (Usia & Jenis Kelamin)",
-        "pdf_include_normality": "Hasil uji normalitas (Shapiro–Wilk)",
-        "pdf_vis_header": "**Visualisasi**",
-        "pdf_include_freq_plot": "Diagram batang frekuensi (Semua item X dan Y)",
-        "pdf_include_stacked_plot": "Diagram Batang Bertumpuk (Persentase Respon Semua Item)",
-        "pdf_include_hist_x_plot": "Histogram $X_{total}$",
-        "pdf_include_hist_y_plot": "Histogram $Y_{total}$",
-        "pdf_include_scatter_plot": "Scatterplot $X_{total}$ vs $Y_{total}$",
-        "pdf_include_age_plot": "Diagram batang demografi (Kelompok Usia)",
-        "pdf_button": "Buat Laporan PDF",
-        "pdf_success": "✅ Laporan PDF '{final_filename}' berhasil dibuat dan siap diunduh.",
-        "pdf_fail": "Gagal membangun PDF. Pastikan semua grafik muat di halaman (Coba ubah 'Jumlah Grafik per Baris' menjadi 1 atau 2). Detail Error: {e}",
-        "plot_age_title": "Distribusi Responden berdasarkan Kelompok Usia",
-        "plot_freq_title": "Frekuensi {var}",
-        "plot_stacked_title": "Persentase Respon Semua Item (X & Y)",
-        "plot_hist_x_title": "Histogram $X_{total}$ (FOMO)",
-        "plot_hist_y_title": "Histogram $Y_{total}$ (Kecanduan Media Sosial)",
-        "plot_scatter_title": "Scatterplot $X_{total}$ vs $Y_{total}$",
-        "pdf_download_button": "Unduh Laporan PDF",
-        "desc_freq": "Frekuensi",
-        "desc_perc": "Persentase (%)",
-        "vis_header": "### 6. Visualisasi",
-        "vis_age": "#### 6.1 Visualisasi Demografi",
-        "vis_dist_x": "#### 6.2 Distribusi FOMO ($X_{total}$)",
-        "vis_dist_y": "#### 6.3 Distribusi Kecanduan Media Sosial ($Y_{total}$)",
-        "vis_assoc": "#### 6.4 Scatterplot Asosiasi ($X_{total}$ vs $Y_{total}$)",
-        "vis_item_freq": "#### 6.5 Diagram Batang Frekuensi Item",
-        "download_chart_button": "Unduh Diagram Batang {col_name} sebagai PNG",
-        "no_data_chart": "Tidak ada data valid ditemukan untuk {col_name}.",
-        "vis_stacked": "#### 6.6 Diagram Batang Bertumpuk Persentase Respon Item",
     }
 }
 
@@ -524,6 +412,12 @@ st.success(lang["comp_success"])
 
 valid_xy = df[["X_total", "Y_total"]].dropna()
 n_valid = valid_xy.shape[0]
+
+# Tambahkan guardrail untuk korelasi/normalitas
+if n_valid < 2:
+    st.error("❗ Data valid (setelah filter usia dan komposit skor) kurang dari 2 responden. Analisis statistik tidak dapat dilanjutkan.")
+    st.stop()
+    
 mean_x = valid_xy["X_total"].mean()
 mean_y = valid_xy["Y_total"].mean()
 
@@ -533,11 +427,19 @@ mean_y = valid_xy["Y_total"].mean()
 
 st.subheader(lang["normality_header"])
 
-shapiro_x = stats.shapiro(valid_xy["X_total"])
-shapiro_y = stats.shapiro(valid_xy["Y_total"])
+try:
+    shapiro_x = stats.shapiro(valid_xy["X_total"])
+    shapiro_y = stats.shapiro(valid_xy["Y_total"])
 
-normal_x = lang["normality_normal"] if shapiro_x.pvalue >= 0.05 else lang["normality_not_normal"]
-normal_y = lang["normality_normal"] if shapiro_y.pvalue >= 0.05 else lang["normality_not_normal"]
+    normal_x = lang["normality_normal"] if shapiro_x.pvalue >= 0.05 else lang["normality_not_normal"]
+    normal_y = lang["normality_normal"] if shapiro_y.pvalue >= 0.05 else lang["normality_not_normal"]
+except Exception as e:
+    st.warning(f"Gagal melakukan Uji Normalitas: {e}. Statistik akan dinilai non-parametrik.")
+    shapiro_x = type('obj', (object,), {'statistic': np.nan, 'pvalue': 0.0})()
+    shapiro_y = type('obj', (object,), {'statistic': np.nan, 'pvalue': 0.0})()
+    normal_x = lang["normality_not_normal"]
+    normal_y = lang["normality_not_normal"]
+
 
 st.write(lang["normality_result"])
 
@@ -549,6 +451,7 @@ result_norm = pd.DataFrame({
 })
 
 st.dataframe(result_norm.round(4))
+ # TAG GAMBAR
 
 # Rekomendasi metode berdasarkan normality
 if normal_x == lang["normality_normal"] and normal_y == lang["normality_normal"]:
@@ -612,6 +515,7 @@ def create_item_bar_chart(df, col_name):
     plt.tight_layout()
     
     st.pyplot(fig_bar)
+     # TAG GAMBAR
 
     buf_bar = io.BytesIO()
     fig_bar.savefig(buf_bar, format="png", bbox_inches="tight")
@@ -669,7 +573,7 @@ if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
                 elif a < 0.6: return "moderate"
                 elif a < 0.8: return "strong"
                 else: return "very strong"
-            else: 
+            else: # Indonesian
                 if a < 0.2: return "sangat lemah"
                 elif a < 0.4: return "lemah"
                 elif a < 0.6: return "sedang"
@@ -707,6 +611,55 @@ if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
     except Exception as e:
         assoc_summary_text = f"Gagal menghitung korelasi. Detail: {e}"
         st.error(assoc_summary_text)
+
+
+elif assoc_method == "Chi-square Test (categorical X & Y)":
+    
+    st.markdown(lang["chi_header"])
+    cat_options = x_items + y_items
+    
+    try:
+        if not cat_options:
+            assoc_summary_text = "Tidak ada item kategorikal yang tersisa untuk Chi-square."
+            st.warning(assoc_summary_text)
+            st.stop()
+            
+        chi_x_col = st.selectbox(lang["chi_x_select"], cat_options, key="chi_x")
+        chi_y_col = st.selectbox(lang["chi_y_select"], cat_options, key="chi_y")
+
+        contingency = pd.crosstab(df[chi_x_col], df[chi_y_col])
+        
+        if contingency.shape[0] < 2 or contingency.shape[1] < 2:
+             assoc_summary_text = "Tabel kontingensi terlalu kecil (kurang dari 2x2). Uji Chi-square dibatalkan."
+             st.error(assoc_summary_text)
+             st.stop()
+             
+        chi2_value, p_chi, dof, expected = stats.chi2_contingency(contingency)
+        signif_text = lang["corr_signif"] if p_chi < 0.05 else lang["corr_not_signif"]
+
+        assoc_stats = {
+            "type": "chi-square",
+            "method": "Chi-square",
+            "chi2": chi2_value,
+            "p": p_chi,
+            "dof": dof,
+            "x": chi_x_col,
+            "y": chi_y_col,
+            "signif_text": signif_text,
+        }
+
+        assoc_summary_text = lang["chi_summary_template"].format(
+            x=chi_x_col,
+            y=chi_y_col,
+            chi2_value=chi2_value,
+            dof=dof,
+            p_chi=p_chi,
+            signif_text=signif_text,
+        )
+    except Exception as e:
+        assoc_summary_text = f"Gagal menghitung Chi-square. Detail: {e}"
+        st.error(assoc_summary_text)
+
 
 # ------------------------------------------------------------------
 # 7. TABS
@@ -786,8 +739,8 @@ with tab_vis:
 
     # 6.1 Age Group Bar Chart
     st.markdown(lang["vis_age"])
-    st.image(buf_age_bar) # Use the image buffer
-    
+    st.image(buf_age_bar)
+     # TAG GAMBAR
 
     # 6.2 Distribution of X_total
     st.markdown(lang["vis_dist_x"])
@@ -798,7 +751,7 @@ with tab_vis:
     ax_hist_x.set_ylabel(lang["desc_freq"])
     st.pyplot(fig_hist_x)
     plt.close(fig_hist_x)
-    
+     # TAG GAMBAR
 
     # 6.3 Distribution of Y_total
     st.markdown(lang["vis_dist_y"])
@@ -809,7 +762,7 @@ with tab_vis:
     ax_hist_y.set_ylabel(lang["desc_freq"])
     st.pyplot(fig_hist_y)
     plt.close(fig_hist_y)
-    
+     # TAG GAMBAR
 
     # 6.4 Association Scatterplot
     st.markdown(lang["vis_assoc"])
@@ -825,7 +778,7 @@ with tab_vis:
     ax_assoc_scatter.set_title(lang["plot_scatter_title"])
     st.pyplot(fig_assoc_scatter)
     plt.close(fig_assoc_scatter)
-    
+     # TAG GAMBAR
 
     # 6.5 Item Frequency Bar Charts
     st.markdown(lang["vis_item_freq"])
@@ -857,7 +810,7 @@ with tab_vis:
     plt.tight_layout()
     st.pyplot(fig_stacked)
     plt.close(fig_stacked)
-    
+     # TAG GAMBAR
 
 # --- Test Result/analysis ------
 
@@ -932,7 +885,7 @@ with tab_assoc:
         st.markdown(lang["chi_contingency"])
         contingency = pd.crosstab(df[assoc_stats['x']], df[assoc_stats['y']])
         st.dataframe(contingency)
-        
+         # TAG GAMBAR
 
 
     else:
