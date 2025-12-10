@@ -19,6 +19,14 @@ import tempfile
 import io
 import os
 
+RESPONSE_LABELS = {
+    1: "1 (STS: Sangat Tidak Setuju)",
+    2: "2 (TS: Tidak Setuju)",
+    3: "3 (N: Netral)",
+    4: "4 (S: Setuju)",
+    5: "5 (SS: Sangat Setuju)",
+}
+
 # ------------------------------------------------------------------
 # PAGE CONFIG
 # ------------------------------------------------------------------
@@ -514,21 +522,52 @@ with tab_desc:
     desc_comp = descriptive_table(df, ["X_total", "Y_total"])
     st.dataframe(desc_comp)
 
-    st.markdown("### 5.3 Frequency & Percentage Table")
-    var_freq = st.selectbox(
-        "Choose variable for frequency table:",
-        x_items + y_items + ["X_total", "Y_total"],
-        key="freq_var",
-    )
-    s_freq = df[var_freq].dropna()
-    freq = s_freq.value_counts().sort_index()
-    perc = (freq / freq.sum() * 100).round(2)
-    freq_table = pd.DataFrame({"Frequency": freq, "Percentage (%)": perc})
+# Tambahkan mapping respons Likert di suatu tempat di awal skrip Anda (jika belum ada)
+# RESPONSE_LABELS = {
+#     1: "Sangat Tidak Setuju",
+#     2: "Tidak Setuju",
+#     3: "Netral",
+#     4: "Setuju",
+#     5: "Sangat Setuju",
+# }
+
+st.markdown("### 5.3 Frequency & Percentage Table")
+var_freq = st.selectbox(
+    "Choose variable for frequency table:",
+    x_items + y_items + ["X_total", "Y_total"],
+    key="freq_var",
+)
+s_freq = df[var_freq].dropna()
+freq = s_freq.value_counts().sort_index()
+perc = (freq / freq.sum() * 100).round(2)
+freq_table = pd.DataFrame({"Frequency": freq, "Percentage (%)": perc})
+
+# --- MODIFIKASI: Tambahkan Kolom Keterangan Respons jika variabelnya adalah item Likert ---
+if var_freq in (x_items + y_items):
+    # Asumsikan Anda mendefinisikan RESPONSE_LABELS = {1: "STS", 2: "TS", ...}
+    try:
+        # PENTING: RESPONSE_LABELS harus didefinisikan di luar blok ini
+        RESPONSE_LABELS = {
+             1: "1 (STS)",
+             2: "2 (TS)",
+             3: "3 (N)",
+             4: "4 (S)",
+             5: "5 (SS)",
+        }
+        # Terapkan mapping ke indeks (angka 1, 2, 3...)
+        labeled_index = freq_table.index.map(lambda x: RESPONSE_LABELS.get(x, x))
+        freq_table.index = labeled_index
+        st.caption("Keterangan: STS=Sangat Tidak Setuju, SS=Sangat Setuju")
+    except NameError:
+        # Lanjut tanpa label jika RESPONSE_LABELS tidak didefinisikan
+        pass
+
     st.dataframe(freq_table)
 
     st.markdown("#### Bar Chart (Frequency)")
     fig_bar, ax_bar = plt.subplots()
-    ax_bar.bar(freq.index.astype(str), freq.values)
+    # Gunakan indeks dari freq_table yang sudah di-label (jika ada)
+    ax_bar.bar(freq_table.index.astype(str), freq_table["Frequency"].values)
     ax_bar.set_xlabel(var_freq)
     ax_bar.set_ylabel("Frequency")
     ax_bar.set_title(f"Frequency of {var_freq}")
