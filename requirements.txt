@@ -5,6 +5,7 @@ matplotlib
 scipy
 reportlab
 openpyxl
+plotly
 plotly.express
 plotly.graph_objects
 plotly.subplots
