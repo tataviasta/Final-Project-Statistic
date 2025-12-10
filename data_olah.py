@@ -620,13 +620,13 @@ with tab_assoc:
 with tab_pdf:
     st.markdown("### 8. Export PDF Report")
 
-    # 1. TAMBAH INPUT NAMA FILE
+    # 1. INPUT NAMA FILE
     pdf_filename = st.text_input(
         "Nama file PDF yang akan diunduh (tanpa .pdf):",
         value="Laporan_Analisis_FOMO_GenZ"
     )
     
-    # 2. TAMBAH PILIHAN JUMLAH GRAFIK HORIZONTAL
+    # 2. PILIHAN JUMLAH GRAFIK HORIZONTAL
     st.markdown("---")
     st.write("**Pengaturan Visualisasi Layout dalam PDF:**")
     cols_per_row = st.radio(
@@ -649,6 +649,9 @@ with tab_pdf:
     st.markdown("**Visualizations**")
     
     include_freq_plot = st.checkbox("Frequency bar charts (All X and Y items)", value=True) 
+    # CHECKBOX BARU UNTUK GRAFIK GABUNGAN
+    include_stacked_plot = st.checkbox("Stacked Bar Chart (All Item Response Percentage)", value=True)
+    
     include_hist_x_plot = st.checkbox("Histogram X_total", value=True)
     include_hist_y_plot = st.checkbox("Histogram Y_total", value=True)
     include_scatter_plot = st.checkbox("Scatterplot X_total vs Y_total", value=True)
@@ -659,15 +662,15 @@ with tab_pdf:
         styles = getSampleStyleSheet()
         story = []
         temp_imgs = []
-        
-        # Buat nama file yang aman
+
+        # 1. KONFIGURASI AWAL PDF
         safe_filename = "".join(c for c in pdf_filename if c.isalnum() or c in (' ', '_')).rstrip()
         final_filename = (safe_filename if safe_filename else "Laporan_Analisis") + ".pdf"
         
-        # Gunakan buffer IO untuk output ReportLab
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer)
         
+        # Helper untuk membuat tabel (Asumsi add_table didefinisikan di luar if st.button)
         def add_table(title, df_table):
             story.append(Paragraph(title, styles["Heading3"]))
             df_reset = df_table.reset_index()
@@ -694,7 +697,7 @@ with tab_pdf:
             temp_list.append(tmp_file.name)
             return {'title': title_text, 'file': tmp_file.name, 'width': width, 'height': height}
 
-
+        
         # 2. BANGUN KONTEN TEKS DAN TABEL
         
         story.append(Paragraph("Survey Analysis Report", styles["Title"]))
@@ -737,10 +740,15 @@ with tab_pdf:
         else: # 3 kolom
             plot_width = 190
             plot_height = 150
+            
+        # Hitung lebar ReportLab per kolom
+        effective_page_width = 500.0
+        col_unit_width = effective_page_width / cols_per_row
+        image_render_width = col_unit_width * 0.95 # 95% untuk margin
         
-        # Kumpulkan Plot
         plots_to_render = []
         
+        # 1. Age Group Bar Chart
         if include_age_plot:
             fig_pdf_age, ax_pdf_age = plt.subplots(figsize=(8, 5))
             age_counts.plot(kind='bar', ax=ax_pdf_age, color='skyblue', edgecolor='black')
@@ -751,6 +759,7 @@ with tab_pdf:
             plt.tight_layout()
             plots_to_render.append(add_plot_to_list(fig_pdf_age, "Demographic – Age Group", temp_imgs, 400, 300))
 
+        # 2. FREQUENCY BAR CHARTS - SEMUA ITEM (X1-Y5)
         if include_freq_plot:
             all_items = x_items + y_items
             for var in all_items:
@@ -763,6 +772,31 @@ with tab_pdf:
                 ax_pdf_bar.set_title(f"Frequency of {var}")
                 plots_to_render.append(add_plot_to_list(fig_pdf_bar, f"Freq. – {var}", temp_imgs, plot_width, plot_height))
                 
+        # 3. STACKED BAR CHART (NEW LOGIC)
+        if include_stacked_plot:
+            all_items = x_items + y_items
+            freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
+            freq_data = freq_data.fillna(0).sort_index()
+
+            for i in range(1, 6):
+                if i not in freq_data.columns:
+                    freq_data[i] = 0.0
+            freq_data = freq_data.sort_index(axis=1)
+
+            fig_stacked, ax_stacked = plt.subplots(figsize=(10, 6))
+            freq_data.plot(kind='bar', stacked=True, ax=ax_stacked, 
+                           color=plt.cm.RdYlBu(np.linspace(0.1, 0.9, 5)))
+            
+            ax_stacked.set_title("Response Percentage Across All Items (X & Y)")
+            ax_stacked.set_xlabel("Survey Item")
+            ax_stacked.set_ylabel("Percentage (%)")
+            ax_stacked.legend(title="Response Score", bbox_to_anchor=(1.05, 1), loc='upper left')
+            ax_stacked.tick_params(axis='x', rotation=45)
+            plt.tight_layout()
+            
+            plots_to_render.append(add_plot_to_list(fig_stacked, "Stacked Bar Chart (X & Y Items)", temp_imgs, 400, 300)) # Ukuran sedikit lebih besar
+
+        # 4. Histogram X_total
         if include_hist_x_plot:
             fig_pdf_hist_x, ax_pdf_hist_x = plt.subplots(figsize=(6, 4))
             d_hist = valid_xy["X_total"].dropna()
@@ -772,6 +806,7 @@ with tab_pdf:
             ax_pdf_hist_x.set_ylabel("Frequency")
             plots_to_render.append(add_plot_to_list(fig_pdf_hist_x, "Histogram X_total", temp_imgs, plot_width, plot_height))
             
+        # 5. Histogram Y_total
         if include_hist_y_plot:
             fig_pdf_hist_y, ax_pdf_hist_y = plt.subplots(figsize=(6, 4))
             d_hist = valid_xy["Y_total"].dropna()
@@ -781,6 +816,7 @@ with tab_pdf:
             ax_pdf_hist_y.set_ylabel("Frequency")
             plots_to_render.append(add_plot_to_list(fig_pdf_hist_y, "Histogram Y_total", temp_imgs, plot_width, plot_height))
 
+        # 6. Scatterplot X_total vs Y_total
         if include_scatter_plot:
             fig_pdf_sc, ax_pdf_sc = plt.subplots(figsize=(6, 4))
             ax_pdf_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"])
@@ -789,12 +825,13 @@ with tab_pdf:
             ax_pdf_sc.set_title("Scatterplot X_total vs Y_total")
             plots_to_render.append(add_plot_to_list(fig_pdf_sc, "Scatterplot X vs Y", temp_imgs, plot_width, plot_height))
 
-        # Render Grafik ke Story (Horizontal Layout)
+
+        # --- RENDERING GRAFIK SECARA HORIZONTAL (DALAM TABEL REPORTLAB) ---
         if plots_to_render:
             story.append(Paragraph("Visualizations", styles["Heading2"]))
             
             rows = []
-            # Kelompokkan plots_to_render menjadi baris-baris
+            
             for i in range(0, len(plots_to_render), cols_per_row):
                 row_plots = plots_to_render[i:i + cols_per_row]
                 
@@ -802,19 +839,29 @@ with tab_pdf:
                 title_row = [Paragraph(p['title'], styles['Normal']) for p in row_plots]
                 
                 # Baris 2: Gambar Grafik
-                image_row = [RLImage(p['file'], width=p['width'], height=p['height']) for p in row_plots]
+                image_row = []
+                for p in row_plots:
+                    img = RLImage(p['file'], width=image_render_width)
+                    image_row.append(img)
+                
+                # Jika ada kolom kosong di baris terakhir, tambahkan placeholder
+                if len(row_plots) < cols_per_row:
+                    diff = cols_per_row - len(row_plots)
+                    for _ in range(diff):
+                        title_row.append(Paragraph("", styles['Normal']))
+                        image_row.append(Spacer(1, 1))
                 
                 rows.append(title_row)
                 rows.append(image_row)
-
+            
             # Buat tabel ReportLab setelah semua baris terkumpul
-            col_widths = [None] * cols_per_row
+            col_widths = [col_unit_width] * cols_per_row # Gunakan lebar unit yang sudah dihitung
             tbl = Table(rows, colWidths=col_widths)
             tbl.setStyle(TableStyle([
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.white),
-                ('BOX', (0, 0), (-1, -1), 0.25, colors.white),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
             ]))
             story.append(tbl)
             story.append(Spacer(1, 10))
@@ -836,7 +883,6 @@ with tab_pdf:
             st.success(f"✅ PDF Report '{final_filename}' berhasil dibuat dan siap diunduh.")
             
         except Exception as e:
-            # ReportLab sering gagal di sini jika gambar terlalu besar/terlalu banyak di satu baris
             st.error(f"Gagal membangun PDF. Pastikan semua grafik muat di halaman (Coba ubah 'Jumlah Grafik per Baris' menjadi 1 atau 2). Detail Error: {e}")
             
         finally:
