@@ -780,16 +780,12 @@ with tab_pdf:
     include_demo = st.checkbox("Demographic summary (Age & Gender)", value=True)
     include_normality = st.checkbox("Normality test result (Shapiro–Wilk)", value=True)
     
-    st.markdown("---")
-    st.markdown("**Visualizations (Fixed)**")
-    
     # MODIFIKASI CHECKBOX: Sekarang mencakup SEMUA item X dan Y
     include_freq_plot = st.checkbox("Frequency bar charts (All X and Y items)", value=True) 
     include_hist_x_plot = st.checkbox("Histogram X_total", value=True)
     include_hist_y_plot = st.checkbox("Histogram Y_total", value=True)
     include_scatter_plot = st.checkbox("Scatterplot X_total vs Y_total", value=True)
     include_age_plot = st.checkbox("Demographic bar chart (Age Group)", value=True)
-
 
     if st.button("Generate PDF Report"):
         styles = getSampleStyleSheet()
