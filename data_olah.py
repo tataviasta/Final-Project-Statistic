@@ -632,7 +632,7 @@ with tab_pdf:
     cols_per_row = st.radio(
         "Jumlah Grafik per Baris:",
         options=[1, 2], # Opsi 1 (vertikal), 2, atau 3
-        index=2, # Default 3
+        index=1, # Default 3
         horizontal=True
     )
     
