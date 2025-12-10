@@ -636,91 +636,77 @@ assoc_method = st.radio(
     index=0,
 )
 
-assoc_stats = {}
-assoc_summary_text = ""
+assoc_stats = {"type": "none"}
+assoc_summary_text = "" # Initialize to empty string or a default message
 
 if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
-    x_corr = valid_xy["X_total"]
-    y_corr = valid_xy["Y_total"]
-
-    if assoc_method.startswith("Pearson"):
-        r_value, p_value = stats.pearsonr(x_corr, y_corr)
-        method_short = "Pearson"
-    else:
-        r_value, p_value = stats.spearmanr(x_corr, y_corr)
-        method_short = "Spearman"
-
-    def interpret_strength(r):
-        a = abs(r)
-        if selected_lang == "English":
-            if a < 0.2: return "very weak"
-            elif a < 0.4: return "weak"
-            elif a < 0.6: return "moderate"
-            elif a < 0.8: return "strong"
-            else: return "very strong"
-        else: # Indonesian
-            if a < 0.2: return "sangat lemah"
-            elif a < 0.4: return "lemah"
-            elif a < 0.6: return "sedang"
-            elif a < 0.8: return "kuat"
-            else: return "sangat kuat"
-
-    direction = "positive" if r_value > 0 else "negative"
-    if selected_lang == "Indonesia":
-        direction = "positif" if r_value > 0 else "negatif"
-        
-    strength = interpret_strength(r_value)
     
-    signif_text = lang["corr_signif"] if p_value < 0.05 else lang["corr_not_signif"]
+    # Tambahkan try/except untuk mengatasi kemungkinan masalah data (misalnya data kosong)
+    try:
+        x_corr = valid_xy["X_total"]
+        y_corr = valid_xy["Y_total"]
 
-    assoc_stats = {
-        "type": "correlation",
-        "method": method_short,
-        "r": r_value,
-        "p": p_value,
-        "direction": direction,
-        "strength": strength,
-        "signif_text": signif_text,
-    }
+        if x_corr.empty or y_corr.empty:
+            assoc_summary_text = "Data valid untuk korelasi kosong. Cek data Anda."
+            st.error(assoc_summary_text)
+            st.stop()
+            
+        if assoc_method.startswith("Pearson"):
+            r_value, p_value = stats.pearsonr(x_corr, y_corr)
+            method_short = "Pearson"
+        else:
+            r_value, p_value = stats.spearmanr(x_corr, y_corr)
+            method_short = "Spearman"
 
-    assoc_summary_text = lang["corr_summary_template"].format(
-        method=method_short,
-        direction=direction,
-        strength=strength,
-        r_value=r_value,
-        p_value=p_value,
-        signif_text=signif_text,
-    )
+        # ... (fungsi interpret_strength, direction, strength, dan signif_text di sini) ...
+        # (pastikan semua variabel ini terdefinisi)
 
-else:
-    st.markdown(lang["chi_header"])
-    cat_options = x_items + y_items
-    chi_x_col = st.selectbox(lang["chi_x_select"], cat_options, key="chi_x")
-    chi_y_col = st.selectbox(lang["chi_y_select"], cat_options, key="chi_y")
+        def interpret_strength(r):
+            a = abs(r)
+            if selected_lang == "English":
+                if a < 0.2: return "very weak"
+                elif a < 0.4: return "weak"
+                elif a < 0.6: return "moderate"
+                elif a < 0.8: return "strong"
+                else: return "very strong"
+            else: 
+                if a < 0.2: return "sangat lemah"
+                elif a < 0.4: return "lemah"
+                elif a < 0.6: return "sedang"
+                elif a < 0.8: return "kuat"
+                else: return "sangat kuat"
 
-    contingency = pd.crosstab(df[chi_x_col], df[chi_y_col])
-    chi2_value, p_chi, dof, expected = stats.chi2_contingency(contingency)
-    signif_text = lang["corr_signif"] if p_chi < 0.05 else lang["corr_not_signif"]
-
-    assoc_stats = {
-        "type": "chi-square",
-        "method": "Chi-square",
-        "chi2": chi2_value,
-        "p": p_chi,
-        "dof": dof,
-        "x": chi_x_col,
-        "y": chi_y_col,
-        "signif_text": signif_text,
-    }
-
-    assoc_summary_text = lang["chi_summary_template"].format(
-        x=chi_x_col,
-        y=chi_y_col,
-        chi2_value=chi2_value,
-        dof=dof,
-        p_chi=p_chi,
-        signif_text=signif_text,
-    )
+        direction = "positive" if r_value > 0 else "negative"
+        if selected_lang == "Indonesia":
+            direction = "positif" if r_value > 0 else "negatif"
+            
+        strength = interpret_strength(r_value)
+        
+        signif_text = lang["corr_signif"] if p_value < 0.05 else lang["corr_not_signif"]
+        
+        # Simpan statistik
+        assoc_stats = {
+            "type": "correlation",
+            "method": method_short,
+            "r": r_value,
+            "p": p_value,
+            "direction": direction,
+            "strength": strength,
+            "signif_text": signif_text,
+        }
+        
+        # Buat ringkasan teks
+        assoc_summary_text = lang["corr_summary_template"].format(
+            method=method_short,
+            direction=direction, 
+            strength=strength,
+            r_value=r_value,
+            p_value=p_value,
+            signif_text=signif_text,
+        )
+    except Exception as e:
+        assoc_summary_text = f"Gagal menghitung korelasi. Detail: {e}"
+        st.error(assoc_summary_text)
 
 # ------------------------------------------------------------------
 # 7. TABS
