@@ -521,40 +521,27 @@ else:
     df["Y_total"] = df[y_items].sum(axis=1)
 
 st.success(lang["comp_success"])
-
-# --- START DEBUGGING BLOCK ---
-st.subheader("DEBUG: Cek Keberadaan dan Isi Kolom Total")
-if "X_total" not in df.columns or "Y_total" not in df.columns:
-    st.error("❗ GAGAL KRITIS: Kolom X_total atau Y_total TIDAK DITEMUKAN di DataFrame. Periksa output 'Preview data setelah cleaning' dan 'Header Saat Ini' untuk memastikan pemetaan kolom berhasil.")
-    st.stop()
-else:
-    st.write(f"Kolom X_total dan Y_total berhasil dibuat. Jumlah responden valid: {valid_xy.shape[0]}")
-    st.dataframe(df[["X_total", "Y_total"]].head())
-# --- END DEBUGGING BLOCK ---
-
 valid_xy = df[["X_total", "Y_total"]].dropna()
 n_valid = valid_xy.shape[0]
-# ... (lanjutkan ke mean_x dan mean_y)
+mean_x = valid_xy["X_total"].mean()
+mean_y = valid_xy["Y_total"].mean()
 
 # ------------------------------------------------------------------
 # NORMALITY TEST (Shapiro–Wilk)
 # ------------------------------------------------------------------
 
 st.subheader(lang["normality_header"])
-
 shapiro_x = stats.shapiro(valid_xy["X_total"])
 shapiro_y = stats.shapiro(valid_xy["Y_total"])
-
-normal_x = lang["normality_normal"] if shapiro_x.pvalue >= 0.05 else lang["normality_not_normal"]
-normal_y = lang["normality_normal"] if shapiro_y.pvalue >= 0.05 else lang["normality_not_normal"]
-
-st.write(lang["normality_result"])
+normal_x = "Normal" if shapiro_x.pvalue >= 0.05 else "Not Normal"
+normal_y = "Normal" if shapiro_y.pvalue >= 0.05 else "Not Normal"
+st.write("### Result:")
 
 result_norm = pd.DataFrame({
-    "Variable / Variabel": ["$X_{total}$", "$Y_{total}$"],
-    "Shapiro-Wilk Statistic / Statistik Shapiro-Wilk": [shapiro_x.statistic, shapiro_y.statistic],
-    "p-value / Nilai $p$": [shapiro_x.pvalue, shapiro_y.pvalue],
-    "Normality / Normalitas": [normal_x, normal_y]
+    "Variable": ["X_total", "Y_total"],
+    "Shapiro-Wilk Statistic": [shapiro_x.statistic, shapiro_y.statistic],
+    "p-value": [shapiro_x.pvalue, shapiro_y.pvalue],
+    "Normality": [normal_x, normal_y]
 })
 
 st.dataframe(result_norm.round(4))
