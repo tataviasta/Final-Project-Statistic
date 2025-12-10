@@ -658,49 +658,16 @@ with tab_pdf:
     if st.button("Generate PDF Report"):
         styles = getSampleStyleSheet()
         story = []
-
-        story.append(Paragraph("Survey Analysis Report", styles["Title"]))
-        story.append(Spacer(1, 12))
-        # ... (Kode Data Cleaning, Group Members, dan add_table tetap sama) ...
-        # [Bagian ini diabaikan untuk keringkasan, tapi asumsikan add_table dan paragraf awal ada]
+        temp_imgs = []
         
-        # --- LOGIKA KODE UNTUK PEMBUATAN PDF DIMULAI ---
-
-        story.append(Paragraph("Survey Analysis Report", styles["Title"]))
-        story.append(Spacer(1, 12))
-        story.append(
-            Paragraph(
-                "FOMO & Social Media Addiction – Statistics 1 (Group 3)",
-                styles["Heading2"],
-            )
-        )
-        story.append(Spacer(1, 8))
-
-        story.append(Paragraph("Group Members:", styles["Heading3"]))
-        story.append(Paragraph("- Delon Raphael Andianto (004202200050)<br/>- Kallista Viasta (004202200039)<br/>- Nabila Putri Amalia (004202200049)<br/>- Pingkan R G Lumingkewas (004202200035)", styles["Normal"]))
-        story.append(Spacer(1, 12))
-
-        # Info cleaning usia + grouping (TIDAK BERUBAH)
-        story.append(Paragraph("Data Cleaning (Age Filter & Grouping):", styles["Heading3"]))
-        story.append(
-            Paragraph(
-                "Only respondents whose age category was 13–18 years, 19–23 years, or 24–28 years "
-                "were included in the analysis to represent Generation Z. Other age categories "
-                "such as below 13 or above 28 years were excluded.",
-                styles["Normal"],
-            )
-        )
-        story.append(Spacer(1, 8))
-        story.append(
-            Paragraph(
-                f"Respondents before cleaning: {before_clean}<br/>"
-                f"Respondents after cleaning: {after_clean}<br/>"
-                f"Removed respondents: {before_clean - after_clean}",
-                styles["Normal"],
-            )
-        )
-        story.append(Spacer(1, 12))
-
+        # Buat nama file yang aman
+        safe_filename = "".join(c for c in pdf_filename if c.isalnum() or c in (' ', '_')).rstrip()
+        final_filename = (safe_filename if safe_filename else "Laporan_Analisis") + ".pdf"
+        
+        # Gunakan buffer IO untuk output ReportLab
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer)
+        
         def add_table(title, df_table):
             story.append(Paragraph(title, styles["Heading3"]))
             df_reset = df_table.reset_index()
@@ -717,32 +684,50 @@ with tab_pdf:
             )
             story.append(tbl)
             story.append(Spacer(1, 10))
+            
+        # Helper untuk menambahkan plot ke list
+        def add_plot_to_list(fig, title_text, temp_list, width, height):
+            """Saves plot to temp file and returns filename and title."""
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+            fig.savefig(tmp_file.name, bbox_inches="tight")
+            plt.close(fig)
+            temp_list.append(tmp_file.name)
+            return {'title': title_text, 'file': tmp_file.name, 'width': width, 'height': height}
 
-        if include_normality:
-            add_table("Normality Test (Shapiro–Wilk)", result_norm)
+
+        # 2. BANGUN KONTEN TEKS DAN TABEL
         
-        if include_demo:
+        story.append(Paragraph("Survey Analysis Report", styles["Title"]))
+        story.append(Spacer(1, 12))
+        story.append(Paragraph("FOMO & Social Media Addiction – Statistics 1 (Group 3)", styles["Heading2"]))
+        story.append(Spacer(1, 8))
+        story.append(Paragraph("Group Members:", styles["Heading3"]))
+        story.append(Paragraph("- Delon Raphael Andianto (004202200050)<br/>- Kallista Viasta (004202200039)<br/>- Nabila Putri Amalia (004202200049)<br/>- Pingkan R G Lumingkewas (004202200035)", styles["Normal"]))
+        story.append(Spacer(1, 12))
+
+        # Data Cleaning Summary
+        story.append(Paragraph("Data Cleaning (Age Filter & Grouping):", styles["Heading3"]))
+        story.append(Paragraph("Only respondents whose age category was 13–18 years, 19–23 years, or 24–28 years were included in the analysis to represent Generation Z. Other age categories such as below 13 or above 28 years were excluded.", styles["Normal"]))
+        story.append(Spacer(1, 8))
+        story.append(Paragraph(f"Respondents before cleaning: {before_clean}<br/>Respondents after cleaning: {after_clean}<br/>Removed respondents: {before_clean - after_clean}", styles["Normal"]))
+        story.append(Spacer(1, 12))
+
+        # Tables (Conditional)
+        if include_normality: add_table("Normality Test (Shapiro–Wilk)", result_norm)
+        if include_demo: 
             add_table("Demographic Summary – Age Group", age_demo_df)
-            if gender_demo_df is not None:
-                add_table("Demographic Summary – Gender", gender_demo_df)
-
-        if include_items:
-            add_table("Descriptive Statistics – Selected Items", desc_items)
-
-        if include_comp:
-            add_table("Descriptive Statistics – Composite Scores (X_total & Y_total)", desc_comp)
-
+            if gender_demo_df is not None: add_table("Demographic Summary – Gender", gender_demo_df)
+        if include_items: add_table("Descriptive Statistics – Selected Items", desc_items)
+        if include_comp: add_table("Descriptive Statistics – Composite Scores (X_total & Y_total)", desc_comp)
         if include_corr:
             story.append(Paragraph("Association Analysis Summary", styles["Heading3"]))
             story.append(Paragraph(assoc_summary_text, styles["Normal"]))
             story.append(Spacer(1, 10))
 
-        temp_imgs = []
         
-        # --- HELPER UNTUK GRAFIK HORIZONTAL ---
+        # 3. KUMPULKAN DAN RENDERING GRAFIK
         
         # Hitung lebar dan tinggi grafik berdasarkan jumlah kolom
-        # Lebar halaman standar ReportLab adalah 600 unit
         if cols_per_row == 1:
             plot_width = 450
             plot_height = 300
@@ -752,20 +737,10 @@ with tab_pdf:
         else: # 3 kolom
             plot_width = 190
             plot_height = 150
-            
-        def add_plot_to_list(fig, title_text, temp_list, width, height):
-            """Saves plot to temp file and returns filename and title."""
-            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-            fig.savefig(tmp_file.name, bbox_inches="tight")
-            plt.close(fig)
-            temp_list.append(tmp_file.name)
-            return {'title': title_text, 'file': tmp_file.name, 'width': width, 'height': height}
-
         
-        # --- KUMPULKAN SEMUA GRAFIK YANG DIPILIH KE DALAM LIST ---
+        # Kumpulkan Plot
         plots_to_render = []
-
-        # 1. Age Group Bar Chart
+        
         if include_age_plot:
             fig_pdf_age, ax_pdf_age = plt.subplots(figsize=(8, 5))
             age_counts.plot(kind='bar', ax=ax_pdf_age, color='skyblue', edgecolor='black')
@@ -776,7 +751,6 @@ with tab_pdf:
             plt.tight_layout()
             plots_to_render.append(add_plot_to_list(fig_pdf_age, "Demographic – Age Group", temp_imgs, 400, 300))
 
-        # 2. FREQUENCY BAR CHARTS - SEMUA ITEM (X1-Y5)
         if include_freq_plot:
             all_items = x_items + y_items
             for var in all_items:
@@ -789,7 +763,6 @@ with tab_pdf:
                 ax_pdf_bar.set_title(f"Frequency of {var}")
                 plots_to_render.append(add_plot_to_list(fig_pdf_bar, f"Freq. – {var}", temp_imgs, plot_width, plot_height))
                 
-        # 3. Histogram X_total
         if include_hist_x_plot:
             fig_pdf_hist_x, ax_pdf_hist_x = plt.subplots(figsize=(6, 4))
             d_hist = valid_xy["X_total"].dropna()
@@ -799,7 +772,6 @@ with tab_pdf:
             ax_pdf_hist_x.set_ylabel("Frequency")
             plots_to_render.append(add_plot_to_list(fig_pdf_hist_x, "Histogram X_total", temp_imgs, plot_width, plot_height))
             
-        # 4. Histogram Y_total
         if include_hist_y_plot:
             fig_pdf_hist_y, ax_pdf_hist_y = plt.subplots(figsize=(6, 4))
             d_hist = valid_xy["Y_total"].dropna()
@@ -809,7 +781,6 @@ with tab_pdf:
             ax_pdf_hist_y.set_ylabel("Frequency")
             plots_to_render.append(add_plot_to_list(fig_pdf_hist_y, "Histogram Y_total", temp_imgs, plot_width, plot_height))
 
-        # 5. Scatterplot X_total vs Y_total
         if include_scatter_plot:
             fig_pdf_sc, ax_pdf_sc = plt.subplots(figsize=(6, 4))
             ax_pdf_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"])
@@ -818,17 +789,16 @@ with tab_pdf:
             ax_pdf_sc.set_title("Scatterplot X_total vs Y_total")
             plots_to_render.append(add_plot_to_list(fig_pdf_sc, "Scatterplot X vs Y", temp_imgs, plot_width, plot_height))
 
-
-        # --- RENDERING GRAFIK SECARA HORIZONTAL (DALAM TABEL REPORTLAB) ---
+        # Render Grafik ke Story (Horizontal Layout)
         if plots_to_render:
             story.append(Paragraph("Visualizations", styles["Heading2"]))
             
             rows = []
-            # Kelompokkan plots_to_render menjadi baris-baris dengan ukuran cols_per_row
+            # Kelompokkan plots_to_render menjadi baris-baris
             for i in range(0, len(plots_to_render), cols_per_row):
                 row_plots = plots_to_render[i:i + cols_per_row]
                 
-                # Baris 1: Judul Grafik (MENGGUNAKAN styles['Normal'] sebagai pengganti styles['Caption'])
+                # Baris 1: Judul Grafik 
                 title_row = [Paragraph(p['title'], styles['Normal']) for p in row_plots]
                 
                 # Baris 2: Gambar Grafik
@@ -836,3 +806,43 @@ with tab_pdf:
                 
                 rows.append(title_row)
                 rows.append(image_row)
+
+            # Buat tabel ReportLab setelah semua baris terkumpul
+            col_widths = [None] * cols_per_row
+            tbl = Table(rows, colWidths=col_widths)
+            tbl.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.white),
+                ('BOX', (0, 0), (-1, -1), 0.25, colors.white),
+            ]))
+            story.append(tbl)
+            story.append(Spacer(1, 10))
+
+
+        # 4. MEMBANGUN PDF (TRY/EXCEPT BLOCK)
+
+        try:
+            doc.build(story)
+            pdf_bytes = buffer.getvalue()
+            
+            # DOWNLOAD PDF
+            st.download_button(
+                "Download PDF Report",
+                data=pdf_bytes,
+                file_name=final_filename, 
+                mime="application/pdf",
+            )
+            st.success(f"✅ PDF Report '{final_filename}' berhasil dibuat dan siap diunduh.")
+            
+        except Exception as e:
+            # ReportLab sering gagal di sini jika gambar terlalu besar/terlalu banyak di satu baris
+            st.error(f"Gagal membangun PDF. Pastikan semua grafik muat di halaman (Coba ubah 'Jumlah Grafik per Baris' menjadi 1 atau 2). Detail Error: {e}")
+            
+        finally:
+            # Hapus file sementara gambar (temp_imgs)
+            for path in temp_imgs:
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
