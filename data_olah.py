@@ -65,9 +65,9 @@ with st.expander("See all column names (headers):"):
     st.write(list(df.columns))
 
 # ------------------------------------------------------------------
-# 1A. DATA CLEANING – GENERAL & OPTIONAL FILTER
+# 1A. DATA CLEANING – PAKAI KATEGORI UMUR 13–18 / 19–23 / 24–28
 # ------------------------------------------------------------------
-st.subheader("Data Cleaning – Filter & Pengelompokan")
+st.subheader("Data Cleaning – Filter Usia & Pengelompokan")
 
 # Deteksi kolom umur otomatis (mengandung 'age' atau 'umur')
 AGE_COLUMN = None
@@ -77,86 +77,77 @@ for col in df.columns:
         AGE_COLUMN = col
         break
 
+if AGE_COLUMN is None:
+    st.error(
+        "Kolom usia tidak ditemukan. Pastikan ada kolom dengan nama mengandung 'Age' atau 'Umur'."
+    )
+    st.stop()
+
+st.write(f"Kolom usia terdeteksi sebagai: **{AGE_COLUMN}**")
+
+# Nilai Age di file contoh: string kategori, misalnya:
+# '13–18 years / tahun', '19–23 years / tahun', '24–28 years / tahun',
+# juga bisa ada '< 13 years / tahun' atau '> 28 years / tahun'
+allowed_age_categories = [
+    "13–18 years / tahun",
+    "19–23 years / tahun",
+    "24–28 years / tahun",
+    # versi dash biasa (jaga-jaga kalau beda di form)
+    "13-18 years / tahun",
+    "19-23 years / tahun",
+    "24-28 years / tahun",
+]
+
 before_clean = len(df)
-df_clean = df.copy() # Gunakan salinan untuk proses cleaning
 
-# --- OPSI 1: PEMBATASAN USIA (GEN Z) ---
-st.markdown("#### Opsi 1: Filter Usia (Gen Z)")
-if AGE_COLUMN:
-    st.write(f"Kolom usia terdeteksi: **{AGE_COLUMN}**")
-    
-    clean_age_filter = st.checkbox(
-        "Aktifkan Filter Usia Gen Z (13–28 tahun)",
-        value=True, # Default: Aktif sesuai kebutuhan proyek awal
-        help="Hanya menyertakan responden dengan kategori usia 13–18, 19–23, dan 24–28 tahun."
-    )
-    
-    if clean_age_filter:
-        allowed_age_categories = [
-            "13–18 years / tahun", "19–23 years / tahun", "24–28 years / tahun",
-            "13-18 years / tahun", "19-23 years / tahun", "24-28 years / tahun",
-        ]
-        
-        df_clean = df_clean[df_clean[AGE_COLUMN].isin(allowed_age_categories)]
-        st.info("✅ Filter Usia Gen Z aktif.")
-    else:
-        st.info("Filter Usia Gen Z dinonaktifkan. Semua usia dipertahankan.")
+# Hanya ambil responden dengan Age di tiga kategori ini
+df = df[df[AGE_COLUMN].isin(allowed_age_categories)]
 
-    # Buat kolom Age_Group (baik difilter maupun tidak, untuk visualisasi demografi)
-    if AGE_COLUMN in df_clean.columns:
-         df_clean["Age_Group"] = df_clean[AGE_COLUMN].astype("category")
-
-
-# --- OPSI 2: CLEANING BARIS KUSTOM (Opsional: Menghapus nilai tertentu di kolom tertentu) ---
-st.markdown("#### Opsi 2: Cleaning Kustom")
-st.caption("Jika ada nilai yang perlu dihapus (misal: 'Tidak Jawab', nilai yang salah), masukkan kolom dan nilai.")
-
-col_to_clean = st.selectbox(
-    "Pilih Kolom yang akan Dibersihkan (Baris Dihapus):",
-    options=[""] + list(df_clean.columns),
-    index=0
-)
-
-if col_to_clean:
-    val_to_remove = st.text_input(
-        f"Masukkan Nilai di kolom **{col_to_clean}** yang ingin Dihapus (pisahkan dengan koma jika lebih dari satu):",
-        placeholder="Cth: 999, Tidak Jawab, NaN"
-    )
-    
-    if val_to_remove:
-        # Pisahkan nilai input berdasarkan koma dan hilangkan spasi
-        values_list = [v.strip() for v in val_to_remove.split(',')]
-        
-        # Coba konversi ke numerik jika memungkinkan (untuk membersihkan angka)
-        final_values_to_remove = []
-        for val in values_list:
-             try:
-                final_values_to_remove.append(pd.to_numeric(val, errors='raise'))
-             except ValueError:
-                final_values_to_remove.append(val)
-        
-        df_clean = df_clean[~df_clean[col_to_clean].isin(final_values_to_remove)]
-        st.success(f"✅ Baris dengan nilai {', '.join(map(str, final_values_to_remove))} di kolom '{col_to_clean}' berhasil dihapus.")
-
-# --- RINGKASAN DATA CLEANING ---
-df = df_clean.copy() # Timpa dataframe utama dengan hasil cleaning
 after_clean = len(df)
 
-st.markdown("---")
-st.success("✅ Proses Data Cleaning selesai.")
+# Buat kolom Age_Group sama dengan Age (sudah kategori)
+df["Age_Group"] = df[AGE_COLUMN].astype("category")
+
+st.success("✅ Data cleaning & age grouping completed.")
 st.write("**Data Cleaning Summary:**")
 st.write(f"- Respondents before cleaning: {before_clean}")
-st.write(f"- Respondents after cleaning: {after_clean}")
+st.write(f"- Respondents after cleaning (13–28 years group only): {after_clean}")
 st.write(f"- Removed respondents: {before_clean - after_clean}")
 
-if AGE_COLUMN and "Age_Group" in df.columns:
-    st.write("**Age Group Distribution After Cleaning:**")
-    st.dataframe(df["Age_Group"].value_counts().rename("Number of respondents"))
-else:
-    st.warning("Kolom usia tidak terdeteksi atau pembersihan usia dinonaktifkan.")
+st.write("**Age Group Distribution:**")
+st.dataframe(df["Age_Group"].value_counts().rename("Number of respondents"))
 
-st.write("Preview data setelah cleaning:")
+st.write("Preview data after cleaning & age grouping:")
 st.dataframe(df.head())
+
+# ------------------------------------------------------------------
+# DEMOGRAPHIC SUMMARY (Age_Group + optional Gender)
+# ------------------------------------------------------------------
+
+# Summary Age_Group (frequency + percentage)
+age_counts = df["Age_Group"].value_counts().sort_index()
+age_demo_df = pd.DataFrame({
+    "Age Group": age_counts.index,
+    "Frequency": age_counts.values,
+})
+age_demo_df["Percentage (%)"] = (age_demo_df["Frequency"] / age_demo_df["Frequency"].sum() * 100).round(2)
+
+# Deteksi kolom gender otomatis (optional)
+GENDER_COLUMN = None
+for col in df.columns:
+    col_lower = str(col).lower()
+    if "gender" in col_lower or "jenis kelamin" in col_lower:
+        GENDER_COLUMN = col
+        break
+
+gender_demo_df = None
+if GENDER_COLUMN is not None:
+    gender_counts = df[GENDER_COLUMN].value_counts().sort_index()
+    gender_demo_df = pd.DataFrame({
+        "Gender": gender_counts.index,
+        "Frequency": gender_counts.values,
+    })
+    gender_demo_df["Percentage (%)"] = (gender_demo_df["Frequency"] / gender_demo_df["Frequency"].sum() * 100).round(2)
 
 # ------------------------------------------------------------------
 # 2. FIXED DEFINITIONS UNTUK X & Y (SESUIAI KUESIONER)
@@ -319,9 +310,10 @@ m2.metric("Average FOMO (X_total)", f"{mean_x:.2f}")
 m3.metric("Average Addiction (Y_total)", f"{mean_y:.2f}")
 
 # ------------------------------------------------------------------
-# 5. HELPER – DESCRIPTIVE TABLE
+# 5. HELPER – DESCRIPTIVE TABLE & BAR CHART ITEM
 # ------------------------------------------------------------------
 def descriptive_table(data: pd.DataFrame, cols):
+    # ... (Fungsi descriptive_table tetap sama) ...
     rows = []
     for col in cols:
         s = data[col].dropna()
@@ -342,6 +334,42 @@ def descriptive_table(data: pd.DataFrame, cols):
             }
         )
     return pd.DataFrame(rows).set_index("Variable").round(3)
+
+
+# NEW HELPER FUNCTION: To create and display individual bar charts
+def create_item_bar_chart(df, col_name):
+    # Dapatkan data frekuensi
+    s_freq = df[col_name].dropna()
+    freq = s_freq.value_counts().sort_index()
+
+    if freq.empty:
+        st.warning(f"No valid data found for {col_name}.")
+        return
+        
+    # Buat figure
+    fig_bar, ax_bar = plt.subplots()
+    ax_bar.bar(freq.index.astype(str), freq.values, color='lightgray', edgecolor='black')
+    ax_bar.set_xlabel(col_name)
+    ax_bar.set_ylabel("Frequency")
+    ax_bar.set_title(f"Frequency of {col_name}")
+    plt.tight_layout()
+    
+    # Tampilkan figure di Streamlit
+    st.pyplot(fig_bar)
+
+    # Simpan ke buffer untuk download
+    buf_bar = io.BytesIO()
+    fig_bar.savefig(buf_bar, format="png", bbox_inches="tight")
+    buf_bar.seek(0)
+    
+    # Tampilkan tombol download
+    st.download_button(
+        f"Download {col_name} Bar Chart as PNG",
+        data=buf_bar,
+        file_name=f"{col_name}_bar_chart.png",
+        mime="image/png",
+    )
+    plt.close(fig_bar) # Tutup figure untuk membebaskan memori
 
 # ------------------------------------------------------------------
 # 6. ASSOCIATION METHOD – CHOOSE ONE
@@ -520,16 +548,15 @@ with tab_desc:
     )
     plt.close(fig_bar)
 
-# ------------------ TAB VISUALS (REVISED FOR EFFICIENCY) ------------------
+# ------------------ TAB VISUALS (MODIFIED TO SHOW ALL) ------------------
 with tab_vis:
+    # ------------------------------------------------------------------
     st.markdown("### 6.1 Demographic Visualization – Age Group")
-    # Tampilkan Bar Chart Age Group
+    # Tampilkan Bar Chart Age Group (fig_age_bar sudah dibuat di luar blok)
     st.pyplot(fig_age_bar)
-    # Anda mungkin ingin menutup fig_age_bar di sini untuk membebaskan memori
-    # atau biarkan terbuka jika Anda ingin PDF menggunakannya tanpa membuat ulang.
-    # Namun, karena PDF sudah memiliki logika recreate, kita bisa menutupnya di sini.
-    # plt.close(fig_age_bar) # Tutup di sini agar tidak ada warning duplicate show
-
+    # Tutup figure setelah ditampilkan (agar tidak ada warning)
+    plt.close(fig_age_bar)
+    
     st.download_button(
         "Download Age Group Bar Chart as PNG",
         data=buf_age_bar,
@@ -538,32 +565,48 @@ with tab_vis:
     )
     
     st.markdown("---")
-    st.markdown("### 6.2 Distribution of Composite Scores (Histograms)")
+    # ------------------------------------------------------------------
+    st.markdown("### 6.2 Frequency Distribution of Individual Items")
+
+    # FOMO Items (X1 to X5)
+    st.markdown("#### FOMO (X) Items")
+    for item in x_items:
+        create_item_bar_chart(df, item)
+        st.markdown("---")
+        
+    # Addiction Items (Y1 to Y5)
+    st.markdown("#### Social Media Addiction (Y) Items")
+    for item in y_items:
+        create_item_bar_chart(df, item)
+        st.markdown("---")
+
+    # ------------------------------------------------------------------
+    st.markdown("### 6.3 Distribution of Composite Scores (Histograms)")
     
     # --- Histogram X_total ---
     st.markdown("#### Histogram of X_total (FOMO)")
-    st.pyplot(fig_hist_x) # Cukup panggil figur yang sudah dibuat
-    buf_hist_x = io.BytesIO()
+    st.pyplot(fig_hist_x) 
+    # Karena fig_hist_x ditutup setelah ini, perlu simpan ulang ke buffer untuk download
+    buf_hist_x = io.BytesIO() 
     fig_hist_x.savefig(buf_hist_x, format="png", bbox_inches="tight")
     buf_hist_x.seek(0)
     st.download_button("Download X_total Histogram as PNG", data=buf_hist_x, file_name="X_total_histogram.png", mime="image/png")
-    # plt.close(fig_hist_x) # Tutup di sini
-
+    plt.close(fig_hist_x) 
+    
     # --- Histogram Y_total ---
     st.markdown("#### Histogram of Y_total (Social Media Addiction)")
-    st.pyplot(fig_hist_y) # Cukup panggil figur yang sudah dibuat
-    buf_hist_y = io.BytesIO()
+    st.pyplot(fig_hist_y)
+    buf_hist_y = io.BytesIO() 
     fig_hist_y.savefig(buf_hist_y, format="png", bbox_inches="tight")
     buf_hist_y.seek(0)
     st.download_button("Download Y_total Histogram as PNG", data=buf_hist_y, file_name="Y_total_histogram.png", mime="image/png")
-    # plt.close(fig_hist_y) # Tutup di sini
+    plt.close(fig_hist_y)
 
     st.markdown("---")
-    st.markdown("### 6.3 Relationship Visualization (Scatterplot)")
+    # ------------------------------------------------------------------
+    st.markdown("### 6.4 Relationship Visualization (Scatterplot)")
     
-    # --- Scatterplot X_total vs Y_total ---
-    # Scatterplot memang perlu dibuat di sini karena tidak dibuat di bagian persiapan
-    # ATAU, buat di bagian persiapan juga, lalu panggil di sini
+    # --- Scatterplot X_total vs Y_total (harus dibuat ulang) ---
     fig_scatter, ax_scatter = plt.subplots()
     ax_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
     m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
