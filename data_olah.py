@@ -20,11 +20,11 @@ import io
 import os
 
 RESPONSE_LABELS = {
-    1: "1 (STS: Sangat Tidak Setuju)",
-    2: "2 (TS: Tidak Setuju)",
-    3: "3 (N: Netral)",
-    4: "4 (S: Setuju)",
-    5: "5 (SS: Sangat Setuju)",
+    1: "1 (SD: Strongly Disagree)",
+    2: "2 (D: Disagree)",
+    3: "3 (N: Neutral)",
+    4: "4 (A: Agree)",
+    5: "5 (SA: Strongly Agree)",
 }
 
 # ------------------------------------------------------------------
@@ -525,13 +525,13 @@ with tab_desc:
 #--------------- Frequency ---------------
 
     st.markdown("### 5.3 Frequency & Percentage Table (All X and Y Items)")
-    st.caption("Tabel menunjukkan distribusi frekuensi untuk setiap item kuesioner X1 hingga Y5. Grafik tersedia di tab '📈 Visualizations'.")
+    st.caption("The table shows the frequency distribution for each questionnaire item from X1 to Y5. The chart is available in the '📈 Visualizations' tab.")
 
     all_items = x_items + y_items
 
     # Loop melalui semua item (X1 hingga Y5) untuk menampilkan TABEL saja
     for var_freq in all_items:
-        st.markdown(f"#### Hasil untuk Item: **{var_freq}**")
+        st.markdown(f"#### Results for Item: **{var_freq}**")
 
         # 1. Hitung Frekuensi dan Persentase
         s_freq = df[var_freq].dropna()
@@ -546,7 +546,7 @@ with tab_desc:
                 if freq_table.index.dtype in [int, float] and freq_table.index.max() <= 5: 
                     labeled_index = freq_table.index.map(lambda x: RESPONSE_LABELS.get(x, x))
                     freq_table.index = labeled_index
-                    st.caption("Keterangan: STS=Sangat Tidak Setuju, SS=Sangat Setuju.")
+                    st.caption("Description: SD = Strongly Disagree, SA = Strongly Agree.")
             except NameError:
                 pass # Lanjut tanpa label jika RESPONSE_LABELS tidak didefinisikan
 
