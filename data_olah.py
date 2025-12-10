@@ -548,85 +548,106 @@ with tab_desc:
     )
     plt.close(fig_bar)
 
-# ------------------ TAB VISUALS (MODIFIED TO SHOW ALL) ------------------
+# Pastikan fungsi create_item_bar_chart dari jawaban sebelumnya sudah Anda tambahkan.
+
+# ------------------ TAB VISUALS (MODIFIED TO USE COLUMNS) ------------------
 with tab_vis:
-    # ------------------------------------------------------------------
-    st.markdown("### 6.1 Demographic Visualization – Age Group")
-    # Tampilkan Bar Chart Age Group (fig_age_bar sudah dibuat di luar blok)
-    st.pyplot(fig_age_bar)
-    # Tutup figure setelah ditampilkan (agar tidak ada warning)
-    plt.close(fig_age_bar)
+    st.markdown("### 6.1 Demographic Visualization")
     
-    st.download_button(
-        "Download Age Group Bar Chart as PNG",
-        data=buf_age_bar,
-        file_name="age_group_bar_chart.png",
-        mime="image/png",
-    )
+    col_age, _ = st.columns([1, 2])
     
-    st.markdown("---")
-    # ------------------------------------------------------------------
-    st.markdown("### 6.2 Frequency Distribution of Individual Items")
-
-    # FOMO Items (X1 to X5)
-    st.markdown("#### FOMO (X) Items")
-    for item in x_items:
-        create_item_bar_chart(df, item)
-        st.markdown("---")
+    with col_age:
+        st.markdown("#### Distribution by Age Group")
+        # Menampilkan Age Group Bar Chart (fig_age_bar sudah dibuat di luar blok)
+        st.pyplot(fig_age_bar)
+        plt.close(fig_age_bar) # Tutup figure setelah ditampilkan
         
-    # Addiction Items (Y1 to Y5)
-    st.markdown("#### Social Media Addiction (Y) Items")
-    for item in y_items:
-        create_item_bar_chart(df, item)
-        st.markdown("---")
-
-    # ------------------------------------------------------------------
-    st.markdown("### 6.3 Distribution of Composite Scores (Histograms)")
+        # Tombol download Age Group
+        st.download_button(
+            "Download Age Group Bar Chart (PNG)",
+            data=buf_age_bar,
+            file_name="age_group_bar_chart.png",
+            mime="image/png",
+        )
     
-    # --- Histogram X_total ---
-    st.markdown("#### Histogram of X_total (FOMO)")
-    st.pyplot(fig_hist_x) 
-    # Karena fig_hist_x ditutup setelah ini, perlu simpan ulang ke buffer untuk download
-    buf_hist_x = io.BytesIO() 
-    fig_hist_x.savefig(buf_hist_x, format="png", bbox_inches="tight")
-    buf_hist_x.seek(0)
-    st.download_button("Download X_total Histogram as PNG", data=buf_hist_x, file_name="X_total_histogram.png", mime="image/png")
-    plt.close(fig_hist_x) 
-    
-    # --- Histogram Y_total ---
-    st.markdown("#### Histogram of Y_total (Social Media Addiction)")
-    st.pyplot(fig_hist_y)
-    buf_hist_y = io.BytesIO() 
-    fig_hist_y.savefig(buf_hist_y, format="png", bbox_inches="tight")
-    buf_hist_y.seek(0)
-    st.download_button("Download Y_total Histogram as PNG", data=buf_hist_y, file_name="Y_total_histogram.png", mime="image/png")
-    plt.close(fig_hist_y)
-
     st.markdown("---")
+    
     # ------------------------------------------------------------------
-    st.markdown("### 6.4 Relationship Visualization (Scatterplot)")
+    st.markdown("### 6.2 Distribution and Relationship of Composite Scores")
     
-    # --- Scatterplot X_total vs Y_total (harus dibuat ulang) ---
-    fig_scatter, ax_scatter = plt.subplots()
-    ax_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
-    m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
-    ax_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
-    
-    ax_scatter.set_xlabel("X_total (FOMO)")
-    ax_scatter.set_ylabel("Y_total (Social media addiction)")
-    ax_scatter.set_title("Scatterplot of X_total vs Y_total")
-    st.pyplot(fig_scatter)
+    # --- Baris 2: Histogram X_total & Y_total ---
+    col_hist_x, col_hist_y = st.columns(2)
 
-    buf_scat = io.BytesIO()
-    fig_scatter.savefig(buf_scat, format="png", bbox_inches="tight")
-    buf_scat.seek(0)
-    st.download_button(
-        "Download Scatterplot as PNG",
-        data=buf_scat,
-        file_name="scatter_X_total_Y_total.png",
-        mime="image/png",
-    )
-    plt.close(fig_scatter)
+    with col_hist_x:
+        st.markdown("#### Histogram X_total (FOMO)")
+        st.pyplot(fig_hist_x) 
+        buf_hist_x = io.BytesIO() 
+        fig_hist_x.savefig(buf_hist_x, format="png", bbox_inches="tight")
+        buf_hist_x.seek(0)
+        st.download_button("Download X_total Histogram (PNG)", data=buf_hist_x, file_name="X_total_histogram.png", mime="image/png")
+        plt.close(fig_hist_x) 
+    
+    with col_hist_y:
+        st.markdown("#### Histogram Y_total (Addiction)")
+        st.pyplot(fig_hist_y)
+        buf_hist_y = io.BytesIO() 
+        fig_hist_y.savefig(buf_hist_y, format="png", bbox_inches="tight")
+        buf_hist_y.seek(0)
+        st.download_button("Download Y_total Histogram (PNG)", data=buf_hist_y, file_name="Y_total_histogram.png", mime="image/png")
+        plt.close(fig_hist_y)
+        
+    st.markdown("---")
+
+    # --- Baris 3: Scatterplot X_total vs Y_total ---
+    col_scatter, _ = st.columns([1, 2]) # Scatterplot 1 kolom, kosong 2 kolom
+
+    with col_scatter:
+        st.markdown("#### Scatterplot X_total vs Y_total")
+        # Scatterplot harus dibuat ulang di sini
+        fig_scatter, ax_scatter = plt.subplots(figsize=(6, 4))
+        ax_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
+        m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+        ax_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
+        
+        ax_scatter.set_xlabel("X_total (FOMO)")
+        ax_scatter.set_ylabel("Y_total (Social media addiction)")
+        ax_scatter.set_title("Scatterplot of X_total vs Y_total")
+        st.pyplot(fig_scatter)
+
+        buf_scat = io.BytesIO()
+        fig_scatter.savefig(buf_scat, format="png", bbox_inches="tight")
+        buf_scat.seek(0)
+        st.download_button(
+            "Download Scatterplot (PNG)",
+            data=buf_scat,
+            file_name="scatter_X_total_Y_total.png",
+            mime="image/png",
+        )
+        plt.close(fig_scatter)
+    
+    st.markdown("---")
+    
+    # ------------------------------------------------------------------
+    st.markdown("### 6.3 Frequency Distribution of Individual Items")
+    all_items = x_items + y_items
+    
+    for i in range(0, len(all_items), 2):
+        col1, col2 = st.columns(2)
+        
+        # Item Pertama di kolom kiri
+        item1 = all_items[i]
+        with col1:
+            st.markdown(f"**{item1}**")
+            create_item_bar_chart(df, item1) 
+            
+        # Item Kedua di kolom kanan (jika ada)
+        if i + 1 < len(all_items):
+            item2 = all_items[i+1]
+            with col2:
+                st.markdown(f"**{item2}**")
+                create_item_bar_chart(df, item2)
+        
+        st.markdown("")
 
 # ------------------ TAB PDF REPORT (MODIFIED) ------------------
 with tab_pdf:
