@@ -425,6 +425,36 @@ else:
 # ------------------------------------------------------------------
 # 7. TABS
 # ------------------------------------------------------------------
+# Pastikan age_counts sudah dihitung di bagian DEMOGRAPHIC SUMMARY
+
+# Prepare Age Group Bar Chart (for tab_vis & pdf)
+fig_age_bar, ax_age_bar = plt.subplots(figsize=(8, 5))
+age_counts.plot(kind='bar', ax=ax_age_bar, color='skyblue', edgecolor='black')
+ax_age_bar.set_title("Distribution of Respondents by Age Group")
+ax_age_bar.set_xlabel("Age Group")
+ax_age_bar.set_ylabel("Frequency")
+ax_age_bar.tick_params(axis='x', rotation=45)
+plt.tight_layout()
+buf_age_bar = io.BytesIO()
+fig_age_bar.savefig(buf_age_bar, format="png", bbox_inches="tight")
+buf_age_bar.seek(0)
+# NOTE: fig_age_bar remains open until tab_vis/pdf needs it. (Don't close yet)
+
+# Prepare X_total Histogram (for tab_vis & pdf)
+fig_hist_x, ax_hist_x = plt.subplots()
+ax_hist_x.hist(valid_xy["X_total"].dropna(), bins=5, edgecolor="black", color='lightcoral')
+ax_hist_x.set_title("Histogram of X_total (FOMO)")
+ax_hist_x.set_xlabel("X_total Score (FOMO)")
+ax_hist_x.set_ylabel("Frequency")
+# NOTE: fig_hist_x remains open
+
+# Prepare Y_total Histogram (for tab_vis & pdf)
+fig_hist_y, ax_hist_y = plt.subplots()
+ax_hist_y.hist(valid_xy["Y_total"].dropna(), bins=5, edgecolor="black", color='lightgreen')
+ax_hist_y.set_title("Histogram of Y_total (Social Media Addiction)")
+ax_hist_y.set_xlabel("Y_total Score (Addiction)")
+ax_hist_y.set_ylabel("Frequency")
+# NOTE: fig_hist_y remains open
 tab_desc, tab_vis, tab_assoc, tab_pdf = st.tabs(
     ["📋 Descriptive Statistics", "📈 Visualizations", "🔗 Analysis Result", "📄 PDF Report"]
 )
@@ -481,39 +511,55 @@ with tab_desc:
     )
     plt.close(fig_bar)
 
-# ------------------ TAB VISUALS ------------------
+# ------------------ TAB VISUALS (REVISED FOR EFFICIENCY) ------------------
 with tab_vis:
-    st.markdown("### 6.1 Histogram")
+    st.markdown("### 6.1 Demographic Visualization – Age Group")
+    # Tampilkan Bar Chart Age Group
+    st.pyplot(fig_age_bar)
+    # Anda mungkin ingin menutup fig_age_bar di sini untuk membebaskan memori
+    # atau biarkan terbuka jika Anda ingin PDF menggunakannya tanpa membuat ulang.
+    # Namun, karena PDF sudah memiliki logika recreate, kita bisa menutupnya di sini.
+    # plt.close(fig_age_bar) # Tutup di sini agar tidak ada warning duplicate show
 
-    var_plot = st.selectbox(
-        "Choose variable for histogram:",
-        x_items + y_items + ["X_total", "Y_total"],
-        key="plot_var",
-    )
-    data_plot = df[var_plot].dropna()
-
-    fig_var, ax_var = plt.subplots()
-    ax_var.hist(data_plot, bins=5, edgecolor="black")
-    ax_var.set_title(f"Histogram of {var_plot}")
-    ax_var.set_xlabel(var_plot)
-    ax_var.set_ylabel("Frequency")
-
-    st.pyplot(fig_var)
-
-    buf_var = io.BytesIO()
-    fig_var.savefig(buf_var, format="png", bbox_inches="tight")
-    buf_var.seek(0)
     st.download_button(
-        "Download histogram as PNG",
-        data=buf_var,
-        file_name=f"{var_plot}_histogram.png",
+        "Download Age Group Bar Chart as PNG",
+        data=buf_age_bar,
+        file_name="age_group_bar_chart.png",
         mime="image/png",
     )
-    plt.close(fig_var)
+    
+    st.markdown("---")
+    st.markdown("### 6.2 Distribution of Composite Scores (Histograms)")
+    
+    # --- Histogram X_total ---
+    st.markdown("#### Histogram of X_total (FOMO)")
+    st.pyplot(fig_hist_x) # Cukup panggil figur yang sudah dibuat
+    buf_hist_x = io.BytesIO()
+    fig_hist_x.savefig(buf_hist_x, format="png", bbox_inches="tight")
+    buf_hist_x.seek(0)
+    st.download_button("Download X_total Histogram as PNG", data=buf_hist_x, file_name="X_total_histogram.png", mime="image/png")
+    # plt.close(fig_hist_x) # Tutup di sini
 
-    st.markdown("### 6.2 Scatterplot X_total vs Y_total")
+    # --- Histogram Y_total ---
+    st.markdown("#### Histogram of Y_total (Social Media Addiction)")
+    st.pyplot(fig_hist_y) # Cukup panggil figur yang sudah dibuat
+    buf_hist_y = io.BytesIO()
+    fig_hist_y.savefig(buf_hist_y, format="png", bbox_inches="tight")
+    buf_hist_y.seek(0)
+    st.download_button("Download Y_total Histogram as PNG", data=buf_hist_y, file_name="Y_total_histogram.png", mime="image/png")
+    # plt.close(fig_hist_y) # Tutup di sini
+
+    st.markdown("---")
+    st.markdown("### 6.3 Relationship Visualization (Scatterplot)")
+    
+    # --- Scatterplot X_total vs Y_total ---
+    # Scatterplot memang perlu dibuat di sini karena tidak dibuat di bagian persiapan
+    # ATAU, buat di bagian persiapan juga, lalu panggil di sini
     fig_scatter, ax_scatter = plt.subplots()
-    ax_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"])
+    ax_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
+    m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+    ax_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
+    
     ax_scatter.set_xlabel("X_total (FOMO)")
     ax_scatter.set_ylabel("Y_total (Social media addiction)")
     ax_scatter.set_title("Scatterplot of X_total vs Y_total")
@@ -523,38 +569,14 @@ with tab_vis:
     fig_scatter.savefig(buf_scat, format="png", bbox_inches="tight")
     buf_scat.seek(0)
     st.download_button(
-        "Download scatterplot as PNG",
+        "Download Scatterplot as PNG",
         data=buf_scat,
         file_name="scatter_X_total_Y_total.png",
         mime="image/png",
     )
     plt.close(fig_scatter)
 
-# ------------------ TAB ASSOCIATION ------------------
-with tab_assoc:
-    st.markdown("### 7. Association Analysis Result")
-
-    if assoc_stats.get("type") == "correlation":
-        st.write(f"**Method:** {assoc_stats['method']} Correlation")
-        st.write(f"**Correlation coefficient (r):** {assoc_stats['r']:.3f}")
-        st.write(f"**p-value:** {assoc_stats['p']:.4f}")
-        st.write(
-            f"**Interpretation:** {assoc_stats['direction']}, "
-            f"{assoc_stats['strength']}, and {assoc_stats['signif_text']}."
-        )
-    else:
-        st.write("**Method:** Chi-square Test")
-        st.write(f"**X variable:** {assoc_stats['x']}")
-        st.write(f"**Y variable:** {assoc_stats['y']}")
-        st.write(f"**Chi-square (χ²):** {assoc_stats['chi2']:.3f}")
-        st.write(f"**df:** {assoc_stats['dof']}")
-        st.write(f"**p-value:** {assoc_stats['p']:.4f}")
-        st.write(f"**Interpretation:** {assoc_stats['signif_text']}.")
-
-    st.markdown("**Summary:**")
-    st.write(assoc_summary_text)
-
-# ------------------ TAB PDF REPORT ------------------
+# ------------------ TAB PDF REPORT (MODIFIED) ------------------
 with tab_pdf:
     st.markdown("### 8. Export PDF Report")
 
@@ -565,12 +587,16 @@ with tab_pdf:
     include_corr = st.checkbox("Association analysis summary", value=True)
     include_demo = st.checkbox("Demographic summary (Age & Gender)", value=True)
     include_normality = st.checkbox("Normality test result (Shapiro–Wilk)", value=True)
-    include_freq_plot = st.checkbox("Frequency bar chart", value=True)
-    include_hist_plot = st.checkbox("Histogram (one variable)", value=True)
+    
+    st.markdown("---")
+    st.markdown("**Visualizations (Fixed)**")
+    # Gunakan Bar Chart dari Descriptive Statistics yang ada (yg pakai selectbox)
+    include_freq_plot = st.checkbox(f"Frequency bar chart ({var_freq} from Descriptive Tab)", value=True)
+    include_hist_x_plot = st.checkbox("Histogram X_total", value=True)
+    include_hist_y_plot = st.checkbox("Histogram Y_total", value=True)
     include_scatter_plot = st.checkbox("Scatterplot X_total vs Y_total", value=True)
+    include_age_plot = st.checkbox("Demographic bar chart (Age Group)", value=True)
 
-    pdf_var_freq = var_freq
-    pdf_var_plot = var_plot
 
     if st.button("Generate PDF Report"):
         styles = getSampleStyleSheet()
@@ -587,10 +613,10 @@ with tab_pdf:
         story.append(Spacer(1, 8))
 
         story.append(Paragraph("Group Members:", styles["Heading3"]))
-        story.append(Paragraph("Member 1, Member 2, Member 3, Member 4", styles["Normal"]))
+        story.append(Paragraph("- Delon Raphael Andianto (004202200050)<br/>- Kallista Viasta (004202200039)<br/>- Nabila Putri Amalia (004202200049)<br/>- Pingkan R G Lumingkewas (004202200035)", styles["Normal"]))
         story.append(Spacer(1, 12))
 
-        # Info cleaning usia + grouping
+        # Info cleaning usia + grouping (TIDAK BERUBAH)
         story.append(Paragraph("Data Cleaning (Age Filter & Grouping):", styles["Heading3"]))
         story.append(
             Paragraph(
@@ -636,7 +662,7 @@ with tab_pdf:
             add_table("Demographic Summary – Age Group", age_demo_df)
 
             # Gender table (if available)
-        if gender_demo_df is not None:
+            if gender_demo_df is not None:
                 add_table("Demographic Summary – Gender", gender_demo_df)
 
         if include_items:
@@ -651,38 +677,80 @@ with tab_pdf:
             story.append(Spacer(1, 10))
 
         temp_imgs = []
+        
+        # Age Group Bar Chart
+        if include_age_plot:
+            # Recreate the plot since it was closed after tab_vis display
+            fig_pdf_age, ax_pdf_age = plt.subplots(figsize=(8, 5))
+            age_counts.plot(kind='bar', ax=ax_pdf_age, color='skyblue', edgecolor='black')
+            ax_pdf_age.set_title("Distribution of Respondents by Age Group")
+            ax_pdf_age.set_xlabel("Age Group")
+            ax_pdf_age.set_ylabel("Frequency")
+            ax_pdf_age.tick_params(axis='x', rotation=45)
+            plt.tight_layout()
+            
+            tmp_age = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+            fig_pdf_age.savefig(tmp_age.name, bbox_inches="tight")
+            plt.close(fig_pdf_age)
+            temp_imgs.append(tmp_age.name)
+            
+            story.append(Paragraph("Demographic Bar Chart – Age Group", styles["Heading3"]))
+            story.append(RLImage(tmp_age.name, width=400, height=300))
+            story.append(Spacer(1, 10))
 
-        # Bar chart
+
+        # Bar chart (using var_freq from descriptive tab's selection)
         if include_freq_plot:
             fig_pdf_bar, ax_pdf_bar = plt.subplots()
+            # Need to re-calculate freq since it's local to tab_desc, but var_freq is preserved
+            s_freq = df[var_freq].dropna()
+            freq = s_freq.value_counts().sort_index()
+            
             ax_pdf_bar.bar(freq.index.astype(str), freq.values)
-            ax_pdf_bar.set_xlabel(pdf_var_freq)
+            ax_pdf_bar.set_xlabel(var_freq)
             ax_pdf_bar.set_ylabel("Frequency")
-            ax_pdf_bar.set_title(f"Frequency of {pdf_var_freq}")
+            ax_pdf_bar.set_title(f"Frequency of {var_freq}")
             tmp_bar = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
             fig_pdf_bar.savefig(tmp_bar.name, bbox_inches="tight")
             plt.close(fig_pdf_bar)
             temp_imgs.append(tmp_bar.name)
 
-            story.append(Paragraph(f"Frequency Bar Chart – {pdf_var_freq}", styles["Heading3"]))
+            story.append(Paragraph(f"Frequency Bar Chart – {var_freq}", styles["Heading3"]))
             story.append(RLImage(tmp_bar.name, width=400, height=300))
             story.append(Spacer(1, 10))
 
-        # Histogram
-        if include_hist_plot:
-            fig_pdf_hist, ax_pdf_hist = plt.subplots()
-            d_hist = df[pdf_var_plot].dropna()
-            ax_pdf_hist.hist(d_hist, bins=5, edgecolor="black")
-            ax_pdf_hist.set_title(f"Histogram of {pdf_var_plot}")
-            ax_pdf_hist.set_xlabel(pdf_var_plot)
-            ax_pdf_hist.set_ylabel("Frequency")
-            tmp_hist = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-            fig_pdf_hist.savefig(tmp_hist.name, bbox_inches="tight")
-            plt.close(fig_pdf_hist)
-            temp_imgs.append(tmp_hist.name)
+        # Histogram X_total
+        if include_hist_x_plot:
+            fig_pdf_hist_x, ax_pdf_hist_x = plt.subplots()
+            d_hist = valid_xy["X_total"].dropna()
+            ax_pdf_hist_x.hist(d_hist, bins=5, edgecolor="black", color='lightcoral')
+            ax_pdf_hist_x.set_title("Histogram of X_total (FOMO)")
+            ax_pdf_hist_x.set_xlabel("X_total Score (FOMO)")
+            ax_pdf_hist_x.set_ylabel("Frequency")
+            tmp_hist_x = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+            fig_pdf_hist_x.savefig(tmp_hist_x.name, bbox_inches="tight")
+            plt.close(fig_pdf_hist_x)
+            temp_imgs.append(tmp_hist_x.name)
 
-            story.append(Paragraph(f"Histogram of {pdf_var_plot}", styles["Heading3"]))
-            story.append(RLImage(tmp_hist.name, width=400, height=300))
+            story.append(Paragraph("Histogram of X_total (FOMO)", styles["Heading3"]))
+            story.append(RLImage(tmp_hist_x.name, width=400, height=300))
+            story.append(Spacer(1, 10))
+            
+        # Histogram Y_total
+        if include_hist_y_plot:
+            fig_pdf_hist_y, ax_pdf_hist_y = plt.subplots()
+            d_hist = valid_xy["Y_total"].dropna()
+            ax_pdf_hist_y.hist(d_hist, bins=5, edgecolor="black", color='lightgreen')
+            ax_pdf_hist_y.set_title("Histogram of Y_total (Social Media Addiction)")
+            ax_pdf_hist_y.set_xlabel("Y_total Score (Addiction)")
+            ax_pdf_hist_y.set_ylabel("Frequency")
+            tmp_hist_y = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+            fig_pdf_hist_y.savefig(tmp_hist_y.name, bbox_inches="tight")
+            plt.close(fig_pdf_hist_y)
+            temp_imgs.append(tmp_hist_y.name)
+
+            story.append(Paragraph("Histogram of Y_total (Social Media Addiction)", styles["Heading3"]))
+            story.append(RLImage(tmp_hist_y.name, width=400, height=300))
             story.append(Spacer(1, 10))
 
         # Scatterplot
