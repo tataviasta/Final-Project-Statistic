@@ -58,7 +58,7 @@ LANGUAGES = {
         "col_missing_error": "Some question columns are missing.",
         "safest_way": "Safest way: change the headers in Excel/Sheets to X1..X5 and Y1..Y5, then re-upload.",
         "current_headers": "Current Headers:",
-        "comp_header": "3. Composite Scores ($X_{total}$ & $Y_{total}$)",
+        "comp_header": "3. Composite Scores (X_total & Y_total)",
         "comp_method": "Composite score method:",
         "comp_success": "✅ Composite scores X_total and Y_total have been successfully created.",
         "normality_header": "Normality Test (Shapiro–Wilk)",
@@ -67,8 +67,8 @@ LANGUAGES = {
         "normality_not_normal": "Not Normal",
         "normality_reco": "✅ Recommended association method based on normality test:",
         "valid_resp_metric": "Valid respondents (after age filter)",
-        "avg_fomo_metric": "Average FOMO ($X_{total}$)",
-        "avg_addict_metric": "Average Addiction ($Y_{total}$)",
+        "avg_fomo_metric": "Average FOMO (X_total)",
+        "avg_addict_metric": "Average Addiction (Y_total)",
         "assoc_header": "4. Association Analysis – Choose One Method",
         "assoc_method_radio": "Association method for X and Y (based on normality recommendation):",
         "chi_header": "**Chi-square Test – select categorical X and Y (Likert).**",
@@ -91,8 +91,6 @@ LANGUAGES = {
         "chi_contingency": "#### Contingency Table",
         "chi_summary_template": "Using the Chi-square test between {x} and {y}, the chi-square statistic is $\chi^2 = {chi2_value:.3f}$ with {dof} degrees of freedom and $p = {p_chi:.4f}$, indicating that the association is {signif_text}.",
         "no_assoc_method": "Please select an association method in section **4. Association Analysis** above.",
-        "corr_calc_fail": "Correlation calculation failed. Please check if the data (X and Y items) is clean (numeric only) and sufficient.",
-        "chi_calc_fail": "Chi-square calculation failed. Please ensure the selected columns are clean (numeric only) and sufficient.",
         "tab_desc": "📋 Descriptive Statistics",
         "tab_vis": "📈 Visualizations",
         "tab_assoc": "🔗 Analysis Result",
@@ -205,8 +203,6 @@ LANGUAGES = {
         "chi_contingency": "#### Tabel Kontingensi",
         "chi_summary_template": "Menggunakan uji Chi-square antara {x} dan {y}, statistik chi-square adalah $\chi^2 = {chi2_value:.3f}$ dengan {dof} derajat kebebasan dan $p = {p_chi:.4f}$, menunjukkan bahwa asosiasi tersebut {signif_text}.",
         "no_assoc_method": "Silakan pilih metode asosiasi di bagian **4. Analisis Asosiasi** di atas.",
-        "corr_calc_fail": "Gagal menghitung korelasi. Harap periksa apakah data (item X dan Y) bersih (hanya numerik) dan memadai.",
-        "chi_calc_fail": "Gagal menghitung Chi-square. Harap pastikan kolom yang dipilih bersih (hanya numerik) dan memadai.",
         "tab_desc": "📋 Statistik Deskriptif",
         "tab_vis": "📈 Visualisasi",
         "tab_assoc": "🔗 Hasil Analisis",
@@ -504,8 +500,7 @@ if len(x_items) == 0 or len(y_items) == 0:
     st.stop()
 
 for col in x_items + y_items:
-    # Mengubah ke numerik di sini. Error mungkin terjadi jika data sangat kotor.
-    df[col] = pd.to_numeric(df[col], errors="coerce") 
+    df[col] = pd.to_numeric(df[col], errors="coerce")
 
 # ------------------------------------------------------------------
 # 4. COMPOSITE SCORES
@@ -518,7 +513,6 @@ comp_method = st.radio(
     horizontal=True,
 )
 
-# PASTIKAN KOLOM DIBUAT SEBELUM DIPANGGIL
 if comp_method.startswith("Mean"):
     df["X_total"] = df[x_items].mean(axis=1)
     df["Y_total"] = df[y_items].mean(axis=1)
@@ -528,18 +522,10 @@ else:
 
 st.success(lang["comp_success"])
 
-# valid_xy di sini harus aman, karena kolom "X_total" dan "Y_total" sudah dibuat
 valid_xy = df[["X_total", "Y_total"]].dropna()
 n_valid = valid_xy.shape[0]
-
-# Jika n_valid = 0, perhitungan korelasi/normalitas akan bermasalah.
-if n_valid < 2:
-    st.error("❗ Data valid (setelah filter usia dan komposit skor) kurang dari 2 responden. Analisis statistik tidak dapat dilanjutkan.")
-    st.stop()
-    
 mean_x = valid_xy["X_total"].mean()
 mean_y = valid_xy["Y_total"].mean()
-
 
 # ------------------------------------------------------------------
 # NORMALITY TEST (Shapiro–Wilk)
@@ -547,21 +533,11 @@ mean_y = valid_xy["Y_total"].mean()
 
 st.subheader(lang["normality_header"])
 
-# Tambahkan try-except untuk uji normalitas
-try:
-    shapiro_x = stats.shapiro(valid_xy["X_total"])
-    shapiro_y = stats.shapiro(valid_xy["Y_total"])
+shapiro_x = stats.shapiro(valid_xy["X_total"])
+shapiro_y = stats.shapiro(valid_xy["Y_total"])
 
-    normal_x = lang["normality_normal"] if shapiro_x.pvalue >= 0.05 else lang["normality_not_normal"]
-    normal_y = lang["normality_normal"] if shapiro_y.pvalue >= 0.05 else lang["normality_not_normal"]
-except Exception as e:
-    # Ini terjadi jika N terlalu kecil, tapi sudah di-guard di atas (n_valid < 2)
-    st.warning(f"Gagal melakukan Uji Normalitas: {e}. Statistik akan dinilai non-parametrik.")
-    shapiro_x = type('obj', (object,), {'statistic': np.nan, 'pvalue': 0.0})()
-    shapiro_y = type('obj', (object,), {'statistic': np.nan, 'pvalue': 0.0})()
-    normal_x = lang["normality_not_normal"]
-    normal_y = lang["normality_not_normal"]
-
+normal_x = lang["normality_normal"] if shapiro_x.pvalue >= 0.05 else lang["normality_not_normal"]
+normal_y = lang["normality_normal"] if shapiro_y.pvalue >= 0.05 else lang["normality_not_normal"]
 
 st.write(lang["normality_result"])
 
@@ -572,7 +548,7 @@ result_norm = pd.DataFrame({
     "Normality / Normalitas": [normal_x, normal_y]
 })
 
-st.dataframe(result_norm.round(4)) 
+st.dataframe(result_norm.round(4))
 
 # Rekomendasi metode berdasarkan normality
 if normal_x == lang["normality_normal"] and normal_y == lang["normality_normal"]:
@@ -580,7 +556,8 @@ if normal_x == lang["normality_normal"] and normal_y == lang["normality_normal"]
 else:
     recommended_method = "Spearman Rank Correlation"
 
-st.info(f"✅ Recommended association method based on normality test: **{recommended_method}**")
+st.info(f"{lang['normality_reco']} **{recommended_method}**")
+
 
 m1, m2, m3 = st.columns(3)
 m1.metric(lang["valid_resp_metric"], n_valid)
@@ -588,7 +565,7 @@ m2.metric(lang["avg_fomo_metric"], f"{mean_x:.2f}")
 m3.metric(lang["avg_addict_metric"], f"{mean_y:.2f}")
 
 # ------------------------------------------------------------------
-# 5. HELPER – DESCRIPTIVE TABLE & BAR CHART ITEM (NO CHANGE)
+# 5. HELPER – DESCRIPTIVE TABLE & BAR CHART ITEM
 # ------------------------------------------------------------------
 def descriptive_table(data: pd.DataFrame, cols):
     rows = []
@@ -648,7 +625,6 @@ def create_item_bar_chart(df, col_name):
     )
     plt.close(fig_bar) 
 
-
 # ------------------------------------------------------------------
 # 6. ASSOCIATION METHOD – CHOOSE ONE
 # ------------------------------------------------------------------
@@ -660,118 +636,91 @@ assoc_method = st.radio(
     index=0,
 )
 
-# Inisialisasi variabel asosiasi di luar blok if/else
-assoc_stats = {"type": "none"}
-assoc_summary_text = lang["no_assoc_method"] 
+assoc_stats = {}
+assoc_summary_text = ""
 
 if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
+    x_corr = valid_xy["X_total"]
+    y_corr = valid_xy["Y_total"]
+
+    if assoc_method.startswith("Pearson"):
+        r_value, p_value = stats.pearsonr(x_corr, y_corr)
+        method_short = "Pearson"
+    else:
+        r_value, p_value = stats.spearmanr(x_corr, y_corr)
+        method_short = "Spearman"
+
+    def interpret_strength(r):
+        a = abs(r)
+        if selected_lang == "English":
+            if a < 0.2: return "very weak"
+            elif a < 0.4: return "weak"
+            elif a < 0.6: return "moderate"
+            elif a < 0.8: return "strong"
+            else: return "very strong"
+        else: # Indonesian
+            if a < 0.2: return "sangat lemah"
+            elif a < 0.4: return "lemah"
+            elif a < 0.6: return "sedang"
+            elif a < 0.8: return "kuat"
+            else: return "sangat kuat"
+
+    direction = "positive" if r_value > 0 else "negative"
+    if selected_lang == "Indonesia":
+        direction = "positif" if r_value > 0 else "negatif"
+        
+    strength = interpret_strength(r_value)
     
-    # --- BLOK KORELASI DIBUNGKUS DALAM TRY-EXCEPT UNTUK MENGHINDARI CRASH ---
-    try:
-        x_corr = valid_xy["X_total"]
-        y_corr = valid_xy["Y_total"]
+    signif_text = lang["corr_signif"] if p_value < 0.05 else lang["corr_not_signif"]
 
-        if x_corr.empty or y_corr.empty:
-            raise ValueError("Data korelasi X atau Y kosong.")
-            
-        if assoc_method.startswith("Pearson"):
-            r_value, p_value = stats.pearsonr(x_corr, y_corr)
-            method_short = "Pearson"
-        else:
-            r_value, p_value = stats.spearmanr(x_corr, y_corr)
-            method_short = "Spearman"
+    assoc_stats = {
+        "type": "correlation",
+        "method": method_short,
+        "r": r_value,
+        "p": p_value,
+        "direction": direction,
+        "strength": strength,
+        "signif_text": signif_text,
+    }
 
-        def interpret_strength(r):
-            a = abs(r)
-            if selected_lang == "English":
-                if a < 0.2: return "very weak"
-                elif a < 0.4: return "weak"
-                elif a < 0.6: return "moderate"
-                elif a < 0.8: return "strong"
-                else: return "very strong"
-            else: # Indonesian
-                if a < 0.2: return "sangat lemah"
-                elif a < 0.4: return "lemah"
-                elif a < 0.6: return "sedang"
-                elif a < 0.8: return "kuat"
-                else: return "sangat kuat"
+    assoc_summary_text = lang["corr_summary_template"].format(
+        method=method_short,
+        direction=direction,
+        strength=strength,
+        r_value=r_value,
+        p_value=p_value,
+        signif_text=signif_text,
+    )
 
-        direction = "positive" if r_value > 0 else "negative"
-        if selected_lang == "Indonesia":
-            direction = "positif" if r_value > 0 else "negatif"
-            
-        strength = interpret_strength(r_value)
-        
-        signif_text = lang["corr_signif"] if p_value < 0.05 else lang["corr_not_signif"]
+else:
+    st.markdown(lang["chi_header"])
+    cat_options = x_items + y_items
+    chi_x_col = st.selectbox(lang["chi_x_select"], cat_options, key="chi_x")
+    chi_y_col = st.selectbox(lang["chi_y_select"], cat_options, key="chi_y")
 
-        assoc_stats = {
-            "type": "correlation",
-            "method": method_short,
-            "r": r_value,
-            "p": p_value,
-            "direction": direction,
-            "strength": strength,
-            "signif_text": signif_text,
-        }
+    contingency = pd.crosstab(df[chi_x_col], df[chi_y_col])
+    chi2_value, p_chi, dof, expected = stats.chi2_contingency(contingency)
+    signif_text = lang["corr_signif"] if p_chi < 0.05 else lang["corr_not_signif"]
 
-        assoc_summary_text = lang["corr_summary_template"].format(
-            method=method_short,
-            direction=direction,
-            strength=strength,
-            r_value=r_value,
-            p_value=p_value,
-            signif_text=signif_text,
-        )
-        
-    except Exception as e:
-        assoc_summary_text = f"{lang['corr_calc_fail']}. Detail: {e}"
-        st.error(assoc_summary_text)
+    assoc_stats = {
+        "type": "chi-square",
+        "method": "Chi-square",
+        "chi2": chi2_value,
+        "p": p_chi,
+        "dof": dof,
+        "x": chi_x_col,
+        "y": chi_y_col,
+        "signif_text": signif_text,
+    }
 
-
-elif assoc_method == "Chi-square Test (categorical X & Y)":
-    
-    try:
-        st.markdown(lang["chi_header"])
-        cat_options = x_items + y_items
-        
-        if not cat_options:
-            assoc_summary_text = "Tidak ada item kategorikal yang tersisa untuk Chi-square."
-            st.warning(assoc_summary_text)
-            st.stop()
-            
-        chi_x_col = st.selectbox(lang["chi_x_select"], cat_options, key="chi_x")
-        chi_y_col = st.selectbox(lang["chi_y_select"], cat_options, key="chi_y")
-
-        contingency = pd.crosstab(df[chi_x_col], df[chi_y_col])
-        
-        if contingency.shape[0] < 2 or contingency.shape[1] < 2:
-             raise ValueError("Tabel kontingensi terlalu kecil (kurang dari 2x2).")
-             
-        chi2_value, p_chi, dof, expected = stats.chi2_contingency(contingency)
-        signif_text = lang["corr_signif"] if p_chi < 0.05 else lang["corr_not_signif"]
-
-        assoc_stats = {
-            "type": "chi-square",
-            "method": "Chi-square",
-            "chi2": chi2_value,
-            "p": p_chi,
-            "dof": dof,
-            "x": chi_x_col,
-            "y": chi_y_col,
-            "signif_text": signif_text,
-        }
-
-        assoc_summary_text = lang["chi_summary_template"].format(
-            x=chi_x_col,
-            y=chi_y_col,
-            chi2_value=chi2_value,
-            dof=dof,
-            p_chi=p_chi,
-            signif_text=signif_text,
-        )
-    except Exception as e:
-        assoc_summary_text = f"{lang['chi_calc_fail']}. Detail: {e}"
-        st.error(assoc_summary_text)
+    assoc_summary_text = lang["chi_summary_template"].format(
+        x=chi_x_col,
+        y=chi_y_col,
+        chi2_value=chi2_value,
+        dof=dof,
+        p_chi=p_chi,
+        signif_text=signif_text,
+    )
 
 # ------------------------------------------------------------------
 # 7. TABS
@@ -851,45 +800,46 @@ with tab_vis:
 
     # 6.1 Age Group Bar Chart
     st.markdown(lang["vis_age"])
-    st.image(buf_age_bar) 
+    st.image(buf_age_bar) # Use the image buffer
+    
 
-    if n_valid >= 2:
-        # 6.2 Distribution of X_total
-        st.markdown(lang["vis_dist_x"])
-        fig_hist_x, ax_hist_x = plt.subplots()
-        ax_hist_x.hist(valid_xy["X_total"].dropna(), bins=5, edgecolor="black", color='lightcoral')
-        ax_hist_x.set_title(lang["plot_hist_x_title"])
-        ax_hist_x.set_xlabel("$X_{total}$ Score (FOMO)")
-        ax_hist_x.set_ylabel(lang["desc_freq"])
-        st.pyplot(fig_hist_x)
-        plt.close(fig_hist_x) 
+    # 6.2 Distribution of X_total
+    st.markdown(lang["vis_dist_x"])
+    fig_hist_x, ax_hist_x = plt.subplots()
+    ax_hist_x.hist(valid_xy["X_total"].dropna(), bins=5, edgecolor="black", color='lightcoral')
+    ax_hist_x.set_title(lang["plot_hist_x_title"])
+    ax_hist_x.set_xlabel("$X_{total}$ Score (FOMO)")
+    ax_hist_x.set_ylabel(lang["desc_freq"])
+    st.pyplot(fig_hist_x)
+    plt.close(fig_hist_x)
+    
 
-        # 6.3 Distribution of Y_total
-        st.markdown(lang["vis_dist_y"])
-        fig_hist_y, ax_hist_y = plt.subplots()
-        ax_hist_y.hist(valid_xy["Y_total"].dropna(), bins=5, edgecolor="black", color='lightgreen')
-        ax_hist_y.set_title(lang["plot_hist_y_title"])
-        ax_hist_y.set_xlabel("$Y_{total}$ Score (Addiction)")
-        ax_hist_y.set_ylabel(lang["desc_freq"])
-        st.pyplot(fig_hist_y)
-        plt.close(fig_hist_y) 
+    # 6.3 Distribution of Y_total
+    st.markdown(lang["vis_dist_y"])
+    fig_hist_y, ax_hist_y = plt.subplots()
+    ax_hist_y.hist(valid_xy["Y_total"].dropna(), bins=5, edgecolor="black", color='lightgreen')
+    ax_hist_y.set_title(lang["plot_hist_y_title"])
+    ax_hist_y.set_xlabel("$Y_{total}$ Score (Addiction)")
+    ax_hist_y.set_ylabel(lang["desc_freq"])
+    st.pyplot(fig_hist_y)
+    plt.close(fig_hist_y)
+    
 
-        # 6.4 Association Scatterplot
-        st.markdown(lang["vis_assoc"])
-        fig_assoc_scatter, ax_assoc_scatter = plt.subplots()
-        ax_assoc_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
-        
-        # Add regression line
-        m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
-        ax_assoc_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
-        
-        ax_assoc_scatter.set_xlabel("$X_{total}$ (FOMO)")
-        ax_assoc_scatter.set_ylabel("$Y_{total}$ (Social media addiction)")
-        ax_assoc_scatter.set_title(lang["plot_scatter_title"])
-        st.pyplot(fig_assoc_scatter)
-        plt.close(fig_assoc_scatter) 
-    else:
-        st.warning("Visualisasi distribusi skor total dan korelasi tidak ditampilkan karena data valid kurang dari 2 responden.")
+    # 6.4 Association Scatterplot
+    st.markdown(lang["vis_assoc"])
+    fig_assoc_scatter, ax_assoc_scatter = plt.subplots()
+    ax_assoc_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
+    
+    # Add regression line
+    m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+    ax_assoc_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
+    
+    ax_assoc_scatter.set_xlabel("$X_{total}$ (FOMO)")
+    ax_assoc_scatter.set_ylabel("$Y_{total}$ (Social media addiction)")
+    ax_assoc_scatter.set_title(lang["plot_scatter_title"])
+    st.pyplot(fig_assoc_scatter)
+    plt.close(fig_assoc_scatter)
+    
 
     # 6.5 Item Frequency Bar Charts
     st.markdown(lang["vis_item_freq"])
@@ -920,7 +870,8 @@ with tab_vis:
     ax_stacked.tick_params(axis='x', rotation=45)
     plt.tight_layout()
     st.pyplot(fig_stacked)
-    plt.close(fig_stacked) 
+    plt.close(fig_stacked)
+    
 
 # --- Test Result/analysis ------
 
@@ -928,81 +879,75 @@ with tab_assoc:
     st.markdown(f"### 7. {lang['tab_assoc']} ({assoc_method})")
 
     if assoc_stats["type"] == "correlation":
-        if 'r' in assoc_stats:
-            st.markdown(lang["corr_result_header"].format(method=assoc_stats['method']))
-            
-            corr_data = pd.DataFrame({
-                "Metric / Metrik": [
-                    lang["corr_metric_r"], 
-                    lang["corr_metric_p"], 
-                    lang["corr_metric_dir"], 
-                    lang["corr_metric_strength"], 
-                    lang["corr_metric_signif"]
-                ],
-                "Value / Nilai": [
-                    f"{assoc_stats['r']:.3f}", 
-                    f"{assoc_stats['p']:.4f}", 
-                    assoc_stats['direction'].capitalize(), 
-                    assoc_stats['strength'].capitalize(), 
-                    assoc_stats['signif_text'].capitalize()
-                ]
-            }).set_index("Metric / Metrik")
-            
-            st.dataframe(corr_data)
+        st.markdown(lang["corr_result_header"].format(method=assoc_stats['method']))
+        
+        corr_data = pd.DataFrame({
+            "Metric / Metrik": [
+                lang["corr_metric_r"], 
+                lang["corr_metric_p"], 
+                lang["corr_metric_dir"], 
+                lang["corr_metric_strength"], 
+                lang["corr_metric_signif"]
+            ],
+            "Value / Nilai": [
+                f"{assoc_stats['r']:.3f}", 
+                f"{assoc_stats['p']:.4f}", 
+                assoc_stats['direction'].capitalize(), 
+                assoc_stats['strength'].capitalize(), 
+                assoc_stats['signif_text'].capitalize()
+            ]
+        }).set_index("Metric / Metrik")
+        
+        st.dataframe(corr_data)
 
-            st.markdown(lang["corr_interpretation"])
-            st.success(assoc_summary_text)
+        st.markdown(lang["corr_interpretation"])
+        st.success(assoc_summary_text)
 
-            st.markdown("---")
-            st.markdown(lang["corr_visual_check"])
-            
-            # Recreate scatterplot for this analysis tab
-            fig_assoc_scatter, ax_assoc_scatter = plt.subplots()
-            ax_assoc_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
-            
-            # Add regression line
-            m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
-            ax_assoc_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
-            
-            ax_assoc_scatter.set_xlabel("$X_{total}$ (FOMO)")
-            ax_assoc_scatter.set_ylabel("$Y_{total}$ (Social media addiction)")
-            ax_assoc_scatter.set_title(lang["plot_scatter_title"] + f" ($r={assoc_stats['r']:.3f}$)")
-            st.pyplot(fig_assoc_scatter)
-            plt.close(fig_assoc_scatter)
-        else:
-            st.error(assoc_summary_text)
-
+        st.markdown("---")
+        st.markdown(lang["corr_visual_check"])
+        
+        # Recreate scatterplot for this analysis tab
+        fig_assoc_scatter, ax_assoc_scatter = plt.subplots()
+        ax_assoc_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
+        
+        # Add regression line
+        m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+        ax_assoc_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
+        
+        ax_assoc_scatter.set_xlabel("$X_{total}$ (FOMO)")
+        ax_assoc_scatter.set_ylabel("$Y_{total}$ (Social media addiction)")
+        ax_assoc_scatter.set_title(lang["plot_scatter_title"] + f" ($r={assoc_stats['r']:.3f}$)")
+        st.pyplot(fig_assoc_scatter)
+        plt.close(fig_assoc_scatter)
 
     elif assoc_stats["type"] == "chi-square":
-        if 'chi2' in assoc_stats:
-            st.markdown(lang["chi_result_header"].format(x=assoc_stats['x'], y=assoc_stats['y']))
-            
-            chi_data = pd.DataFrame({
-                "Metric / Metrik": [
-                    lang["chi_metric_chi2"], 
-                    lang["chi_metric_dof"], 
-                    lang["corr_metric_p"], 
-                    lang["corr_metric_signif"]
-                ],
-                "Value / Nilai": [
-                    f"{assoc_stats['chi2']:.3f}", 
-                    assoc_stats['dof'], 
-                    f"{assoc_stats['p']:.4f}", 
-                    assoc_stats['signif_text'].capitalize()
-                ]
-            }).set_index("Metric / Metrik")
-            
-            st.dataframe(chi_data)
-            st.markdown(lang["corr_interpretation"])
-            st.success(assoc_summary_text)
-            
-            st.markdown("---")
-            st.markdown(lang["chi_contingency"])
-            contingency = pd.crosstab(df[assoc_stats['x']], df[assoc_stats['y']])
-            st.dataframe(contingency) 
+        st.markdown(lang["chi_result_header"].format(x=assoc_stats['x'], y=assoc_stats['y']))
+        
+        chi_data = pd.DataFrame({
+            "Metric / Metrik": [
+                lang["chi_metric_chi2"], 
+                lang["chi_metric_dof"], 
+                lang["corr_metric_p"], 
+                lang["corr_metric_signif"]
+            ],
+            "Value / Nilai": [
+                f"{assoc_stats['chi2']:.3f}", 
+                assoc_stats['dof'], 
+                f"{assoc_stats['p']:.4f}", 
+                assoc_stats['signif_text'].capitalize()
+            ]
+        }).set_index("Metric / Metrik")
+        
+        st.dataframe(chi_data)
+        st.markdown(lang["corr_interpretation"])
+        st.success(assoc_summary_text)
+        
+        st.markdown("---")
+        st.markdown(lang["chi_contingency"])
+        contingency = pd.crosstab(df[assoc_stats['x']], df[assoc_stats['y']])
+        st.dataframe(contingency)
+        
 
-        else:
-            st.error(assoc_summary_text)
 
     else:
         st.warning(lang["no_assoc_method"])
@@ -1114,15 +1059,10 @@ with tab_pdf:
             if gender_demo_df is not None: add_table(lang["gender_dist_header"], gender_demo_df)
         if include_items: add_table(lang["desc_item_header"], desc_items)
         if include_comp: add_table(lang["desc_comp_header"], desc_comp)
-        
-        if include_corr and 'r' in assoc_stats and assoc_stats['type'] == 'correlation':
+        if include_corr:
             story.append(Paragraph(lang["pdf_include_corr"], styles["Heading3"]))
             story.append(Paragraph(assoc_summary_text, styles["Normal"]))
             story.append(Spacer(1, 10))
-        elif include_corr and 'chi2' in assoc_stats and assoc_stats['type'] == 'chi-square':
-             story.append(Paragraph(lang["pdf_include_corr"], styles["Heading3"]))
-             story.append(Paragraph(assoc_summary_text, styles["Normal"]))
-             story.append(Spacer(1, 10))
 
         
         # 3. COLLECT AND RENDER PLOTS
@@ -1147,80 +1087,80 @@ with tab_pdf:
             plt.tight_layout()
             plots_to_render.append(add_plot_to_list(fig_pdf_age, lang["plot_age_title"], temp_imgs, 400, 300))
 
-        # Cek n_valid sebelum membuat plot skor total
-        if n_valid >= 2:
-            # 2. FREQUENCY BAR CHARTS - ALL ITEMS (X1-Y5)
-            if include_freq_plot:
-                all_items = x_items + y_items
-                for var in all_items:
-                    fig_pdf_bar, ax_pdf_bar = plt.subplots(figsize=(6, 4))
-                    s_freq = df[var].dropna()
-                    freq = s_freq.value_counts().sort_index()
-                    
-                    labels = [RESPONSE_LABELS.get(int(i), str(i).split(' ')[0]) for i in freq.index.astype(int)]
-
-                    ax_pdf_bar.bar(labels, freq.values)
-                    ax_pdf_bar.set_xlabel(var)
-                    ax_pdf_bar.set_ylabel(lang["desc_freq"])
-                    ax_pdf_bar.set_title(lang["plot_freq_title"].format(var=var))
-                    plt.xticks(rotation=45, ha="right")
-                    plt.tight_layout()
-                    plots_to_render.append(add_plot_to_list(fig_pdf_bar, lang["plot_freq_title"].format(var=var), temp_imgs, plot_width, plot_height))
-                    
-            # 3. STACKED BAR CHART
-            if include_stacked_plot:
-                all_items = x_items + y_items
-                freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
-                freq_data = freq_data.fillna(0).sort_index()
-
-                for i in range(1, 6):
-                    if i not in freq_data.columns:
-                        freq_data[i] = 0.0
-                freq_data = freq_data.sort_index(axis=1)
-
-                fig_stacked, ax_stacked = plt.subplots(figsize=(10, 6))
-                freq_data.plot(kind='bar', stacked=True, ax=ax_stacked, 
-                                color=plt.cm.RdYlBu(np.linspace(0.1, 0.9, 5)))
+        # 2. FREQUENCY BAR CHARTS - ALL ITEMS (X1-Y5)
+        if include_freq_plot:
+            all_items = x_items + y_items
+            for var in all_items:
+                fig_pdf_bar, ax_pdf_bar = plt.subplots(figsize=(6, 4))
+                s_freq = df[var].dropna()
+                freq = s_freq.value_counts().sort_index()
                 
-                ax_stacked.set_title(lang["plot_stacked_title"])
-                ax_stacked.set_xlabel("Survey Item / Item Kuesioner")
-                ax_stacked.set_ylabel(lang["desc_perc"])
-                legend_labels = {i: RESPONSE_LABELS[i].split(' ')[0] for i in range(1, 6)}
-                ax_stacked.legend(title="Response Score / Skor Respon", labels=[legend_labels[col] for col in freq_data.columns], bbox_to_anchor=(1.05, 1), loc='upper left')
-                ax_stacked.tick_params(axis='x', rotation=45)
+                labels = [RESPONSE_LABELS.get(int(i), str(i).split(' ')[0]) for i in freq.index.astype(int)]
+
+                ax_pdf_bar.bar(labels, freq.values)
+                ax_pdf_bar.set_xlabel(var)
+                ax_pdf_bar.set_ylabel(lang["desc_freq"])
+                ax_pdf_bar.set_title(lang["plot_freq_title"].format(var=var))
+                plt.xticks(rotation=45, ha="right")
                 plt.tight_layout()
+                plots_to_render.append(add_plot_to_list(fig_pdf_bar, lang["plot_freq_title"].format(var=var), temp_imgs, plot_width, plot_height))
                 
-                plots_to_render.append(add_plot_to_list(fig_stacked, lang["plot_stacked_title"], temp_imgs, 450, 350))
+        # 3. STACKED BAR CHART
+        if include_stacked_plot:
+            # Recreate fig_stacked (it was closed after tab_vis)
+            all_items = x_items + y_items
+            freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
+            freq_data = freq_data.fillna(0).sort_index()
 
-            # 4. Histogram X_total
-            if include_hist_x_plot:
-                fig_pdf_hist_x, ax_pdf_hist_x = plt.subplots(figsize=(6, 4))
-                d_hist = valid_xy["X_total"].dropna()
-                ax_pdf_hist_x.hist(d_hist, bins=5, edgecolor="black", color='lightcoral')
-                ax_pdf_hist_x.set_title(lang["plot_hist_x_title"])
-                ax_pdf_hist_x.set_xlabel("$X_{total}$ Score (FOMO)")
-                ax_pdf_hist_x.set_ylabel(lang["desc_freq"])
-                plots_to_render.append(add_plot_to_list(fig_pdf_hist_x, lang["plot_hist_x_title"], temp_imgs, plot_width, plot_height))
-                
-            # 5. Histogram Y_total
-            if include_hist_y_plot:
-                fig_pdf_hist_y, ax_pdf_hist_y = plt.subplots(figsize=(6, 4))
-                d_hist = valid_xy["Y_total"].dropna()
-                ax_pdf_hist_y.hist(d_hist, bins=5, edgecolor="black", color='lightgreen')
-                ax_pdf_hist_y.set_title(lang["plot_hist_y_title"])
-                ax_pdf_hist_y.set_xlabel("$Y_{total}$ Score (Addiction)")
-                ax_pdf_hist_y.set_ylabel(lang["desc_freq"])
-                plots_to_render.append(add_plot_to_list(fig_pdf_hist_y, lang["plot_hist_y_title"], temp_imgs, plot_width, plot_height))
+            for i in range(1, 6):
+                if i not in freq_data.columns:
+                    freq_data[i] = 0.0
+            freq_data = freq_data.sort_index(axis=1)
 
-            # 6. Scatterplot X_total vs Y_total
-            if include_scatter_plot and assoc_stats["type"] == "correlation" and 'r' in assoc_stats:
-                fig_pdf_sc, ax_pdf_sc = plt.subplots(figsize=(6, 4))
-                ax_pdf_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"])
-                ax_pdf_sc.set_xlabel("$X_{total}$ (FOMO)")
-                ax_pdf_sc.set_ylabel("$Y_{total}$ (Social media addiction)")
-                ax_pdf_sc.set_title(lang["plot_scatter_title"])
-                plots_to_render.append(add_plot_to_list(fig_pdf_sc, lang["plot_scatter_title"], temp_imgs, plot_width, plot_height))
-        
+            fig_stacked, ax_stacked = plt.subplots(figsize=(10, 6))
+            freq_data.plot(kind='bar', stacked=True, ax=ax_stacked, 
+                            color=plt.cm.RdYlBu(np.linspace(0.1, 0.9, 5)))
+            
+            ax_stacked.set_title(lang["plot_stacked_title"])
+            ax_stacked.set_xlabel("Survey Item / Item Kuesioner")
+            ax_stacked.set_ylabel(lang["desc_perc"])
+            legend_labels = {i: RESPONSE_LABELS[i].split(' ')[0] for i in range(1, 6)}
+            ax_stacked.legend(title="Response Score / Skor Respon", labels=[legend_labels[col] for col in freq_data.columns], bbox_to_anchor=(1.05, 1), loc='upper left')
+            ax_stacked.tick_params(axis='x', rotation=45)
+            plt.tight_layout()
+            
+            plots_to_render.append(add_plot_to_list(fig_stacked, lang["plot_stacked_title"], temp_imgs, 450, 350))
+
+        # 4. Histogram X_total
+        if include_hist_x_plot:
+            fig_pdf_hist_x, ax_pdf_hist_x = plt.subplots(figsize=(6, 4))
+            d_hist = valid_xy["X_total"].dropna()
+            ax_pdf_hist_x.hist(d_hist, bins=5, edgecolor="black", color='lightcoral')
+            ax_pdf_hist_x.set_title(lang["plot_hist_x_title"])
+            ax_pdf_hist_x.set_xlabel("$X_{total}$ Score (FOMO)")
+            ax_pdf_hist_x.set_ylabel(lang["desc_freq"])
+            plots_to_render.append(add_plot_to_list(fig_pdf_hist_x, lang["plot_hist_x_title"], temp_imgs, plot_width, plot_height))
+            
+        # 5. Histogram Y_total
+        if include_hist_y_plot:
+            fig_pdf_hist_y, ax_pdf_hist_y = plt.subplots(figsize=(6, 4))
+            d_hist = valid_xy["Y_total"].dropna()
+            ax_pdf_hist_y.hist(d_hist, bins=5, edgecolor="black", color='lightgreen')
+            ax_pdf_hist_y.set_title(lang["plot_hist_y_title"])
+            ax_pdf_hist_y.set_xlabel("$Y_{total}$ Score (Addiction)")
+            ax_pdf_hist_y.set_ylabel(lang["desc_freq"])
+            plots_to_render.append(add_plot_to_list(fig_pdf_hist_y, lang["plot_hist_y_title"], temp_imgs, plot_width, plot_height))
+
+        # 6. Scatterplot X_total vs Y_total
+        if include_scatter_plot:
+            fig_pdf_sc, ax_pdf_sc = plt.subplots(figsize=(6, 4))
+            ax_pdf_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"])
+            ax_pdf_sc.set_xlabel("$X_{total}$ (FOMO)")
+            ax_pdf_sc.set_ylabel("$Y_{total}$ (Social media addiction)")
+            ax_pdf_sc.set_title(lang["plot_scatter_title"])
+            plots_to_render.append(add_plot_to_list(fig_pdf_sc, lang["plot_scatter_title"], temp_imgs, plot_width, plot_height))
+
+
         # --- RENDERING PLOTS HORIZONTALLY (IN REPORTLAB TABLE) ---
         if plots_to_render:
             story.append(Paragraph(lang["pdf_vis_header"], styles["Heading2"]))
