@@ -631,7 +631,7 @@ with tab_pdf:
     st.write("**Pengaturan Visualisasi Layout dalam PDF:**")
     cols_per_row = st.radio(
         "Jumlah Grafik per Baris:",
-        options=[1, 2, 3], # Opsi 1 (vertikal), 2, atau 3
+        options=[1, 2], # Opsi 1 (vertikal), 2, atau 3
         index=2, # Default 3
         horizontal=True
     )
