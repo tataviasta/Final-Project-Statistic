@@ -549,11 +549,7 @@ with tab_desc:
 # --- Test Result/analysis ------
 
 with tab_assoc:
-    st.markdown("### 7.1 Normality Test Result")
-    st.dataframe(result_norm.round(4))
-    
-    st.markdown("---")
-    st.markdown(f"### 7.2 Association Analysis ({assoc_method})")
+    st.markdown(f"### 7 Association Analysis ({assoc_method})")
 
     if assoc_stats["type"] == "correlation":
         st.markdown(f"#### Hasil {assoc_stats['method']} Correlation")
