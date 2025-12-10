@@ -548,7 +548,80 @@ with tab_desc:
     )
     plt.close(fig_bar)
 
-# Pastikan fungsi create_item_bar_chart dari jawaban sebelumnya sudah Anda tambahkan.
+# --- Test Result/analysis ------
+
+with tab_assoc:
+    st.markdown("### 7.1 Normality Test Result")
+    st.dataframe(result_norm.round(4))
+    st.info(f"Rekomendasi metode asosiasi: **{recommended_method}**")
+    
+    st.markdown("---")
+    st.markdown(f"### 7.2 Association Analysis ({assoc_method})")
+
+    if assoc_stats["type"] == "correlation":
+        st.markdown(f"#### Hasil {assoc_stats['method']} Correlation")
+        
+        # Tampilkan tabel ringkasan
+        corr_data = pd.DataFrame({
+            "Metric": ["Correlation Coefficient (r)", "p-value", "Direction", "Strength", "Significance"],
+            "Value": [
+                f"{assoc_stats['r']:.3f}", 
+                f"{assoc_stats['p']:.4f}", 
+                assoc_stats['direction'].capitalize(), 
+                assoc_stats['strength'].capitalize(), 
+                assoc_stats['signif_text'].capitalize()
+            ]
+        }).set_index("Metric")
+        
+        st.dataframe(corr_data)
+
+        # Tampilkan interpretasi teks
+        st.markdown("#### Interpretation:")
+        st.success(assoc_summary_text)
+
+        # Tambahkan visualisasi scatterplot (sudah dibahas di visualisasi)
+        st.markdown("---")
+        st.markdown("#### Visual Check: Scatterplot")
+        
+        # Buat ulang scatterplot untuk ditampilkan di tab analisis ini
+        fig_assoc_scatter, ax_assoc_scatter = plt.subplots()
+        ax_assoc_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
+        
+        # Tambahkan garis regresi
+        m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+        ax_assoc_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
+        
+        ax_assoc_scatter.set_xlabel("X_total (FOMO)")
+        ax_assoc_scatter.set_ylabel("Y_total (Social media addiction)")
+        ax_assoc_scatter.set_title(f"Scatterplot (r={assoc_stats['r']:.3f})")
+        st.pyplot(fig_assoc_scatter)
+        plt.close(fig_assoc_scatter)
+
+    elif assoc_stats["type"] == "chi-square":
+        st.markdown(f"#### Hasil Chi-square Test antara {assoc_stats['x']} dan {assoc_stats['y']}")
+        
+        chi_data = pd.DataFrame({
+            "Metric": ["Chi-square Value ($\chi^2$)", "Degrees of Freedom (dof)", "p-value", "Significance"],
+            "Value": [
+                f"{assoc_stats['chi2']:.3f}", 
+                assoc_stats['dof'], 
+                f"{assoc_stats['p']:.4f}", 
+                assoc_stats['signif_text'].capitalize()
+            ]
+        }).set_index("Metric")
+        
+        st.dataframe(chi_data)
+        st.markdown("#### Interpretation:")
+        st.success(assoc_summary_text)
+        
+        st.markdown("---")
+        st.markdown("#### Contingency Table")
+        contingency = pd.crosstab(df[assoc_stats['x']], df[assoc_stats['y']])
+        st.dataframe(contingency)
+
+
+    else:
+        st.warning("Silakan pilih metode asosiasi di bagian **4. Association Analysis** di atas.")
 
 # ------------------ TAB VISUALS (MODIFIED TO USE COLUMNS) ------------------
 with tab_vis:
@@ -695,7 +768,7 @@ with tab_vis:
     )
     plt.close(fig_stacked)
 
-# ------------------ TAB PDF REPORT (MODIFIED) ------------------
+# ------------------ TAB PDF REPORT (MODIFIED UNTUK SEMUA FREQUENCY) ------------------
 with tab_pdf:
     st.markdown("### 8. Export PDF Report")
 
@@ -709,8 +782,9 @@ with tab_pdf:
     
     st.markdown("---")
     st.markdown("**Visualizations (Fixed)**")
-    # Gunakan Bar Chart dari Descriptive Statistics yang ada (yg pakai selectbox)
-    include_freq_plot = st.checkbox(f"Frequency bar chart ({var_freq} from Descriptive Tab)", value=True)
+    
+    # MODIFIKASI CHECKBOX: Sekarang mencakup SEMUA item X dan Y
+    include_freq_plot = st.checkbox("Frequency bar charts (All X and Y items)", value=True) 
     include_hist_x_plot = st.checkbox("Histogram X_total", value=True)
     include_hist_y_plot = st.checkbox("Histogram Y_total", value=True)
     include_scatter_plot = st.checkbox("Scatterplot X_total vs Y_total", value=True)
@@ -818,25 +892,46 @@ with tab_pdf:
             story.append(Spacer(1, 10))
 
 
-        # Bar chart (using var_freq from descriptive tab's selection)
+        # FREQUENCY BAR CHARTS - SEMUA ITEM (X1-Y5)
         if include_freq_plot:
-            fig_pdf_bar, ax_pdf_bar = plt.subplots()
-            # Need to re-calculate freq since it's local to tab_desc, but var_freq is preserved
-            s_freq = df[var_freq].dropna()
-            freq = s_freq.value_counts().sort_index()
-            
-            ax_pdf_bar.bar(freq.index.astype(str), freq.values)
-            ax_pdf_bar.set_xlabel(var_freq)
-            ax_pdf_bar.set_ylabel("Frequency")
-            ax_pdf_bar.set_title(f"Frequency of {var_freq}")
-            tmp_bar = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-            fig_pdf_bar.savefig(tmp_bar.name, bbox_inches="tight")
-            plt.close(fig_pdf_bar)
-            temp_imgs.append(tmp_bar.name)
+            # Asumsikan all_items sudah terdefinisi:
+            try:
+                all_items = x_items + y_items
+            except NameError:
+                # Fallback/Assumption if not defined
+                x_items = ['X1', 'X2', 'X3', 'X4', 'X5']
+                y_items = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5']
+                all_items = x_items + y_items
 
-            story.append(Paragraph(f"Frequency Bar Chart – {var_freq}", styles["Heading3"]))
-            story.append(RLImage(tmp_bar.name, width=400, height=300))
+            story.append(Paragraph("Frequency Bar Charts – Individual Items", styles["Heading2"]))
             story.append(Spacer(1, 10))
+
+            # Loop melalui semua item
+            for var in all_items:
+                # Recreate the plot for the current variable
+                fig_pdf_bar, ax_pdf_bar = plt.subplots(figsize=(6, 4))
+                
+                # Re-calculate frequency 
+                s_freq = df[var].dropna()
+                freq = s_freq.value_counts().sort_index()
+                
+                # Draw the bar chart
+                ax_pdf_bar.bar(freq.index.astype(str), freq.values)
+                ax_pdf_bar.set_xlabel(var)
+                ax_pdf_bar.set_ylabel("Frequency")
+                ax_pdf_bar.set_title(f"Frequency of {var}")
+                
+                # Save to temporary file
+                tmp_bar = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+                fig_pdf_bar.savefig(tmp_bar.name, bbox_inches="tight")
+                plt.close(fig_pdf_bar)
+                temp_imgs.append(tmp_bar.name)
+
+                # Add to PDF story
+                story.append(Paragraph(f"Frequency Bar Chart – {var}", styles["Heading3"]))
+                story.append(RLImage(tmp_bar.name, width=400, height=300))
+                story.append(Spacer(1, 10))
+
 
         # Histogram X_total
         if include_hist_x_plot:
