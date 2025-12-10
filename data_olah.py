@@ -623,155 +623,27 @@ with tab_assoc:
     else:
         st.warning("Silakan pilih metode asosiasi di bagian **4. Association Analysis** di atas.")
 
-# ------------------ TAB VISUALS (MODIFIED TO USE COLUMNS) ------------------
-with tab_vis:
-    st.markdown("### 6.1 Demographic Visualization")
-    
-    col_age, _ = st.columns([1, 2])
-    
-    with col_age:
-        st.markdown("#### Distribution by Age Group")
-        # Menampilkan Age Group Bar Chart (fig_age_bar sudah dibuat di luar blok)
-        st.pyplot(fig_age_bar)
-        plt.close(fig_age_bar) # Tutup figure setelah ditampilkan
-        
-        # Tombol download Age Group
-        st.download_button(
-            "Download Age Group Bar Chart (PNG)",
-            data=buf_age_bar,
-            file_name="age_group_bar_chart.png",
-            mime="image/png",
-        )
-    
-    st.markdown("---")
-    
-    # ------------------------------------------------------------------
-    st.markdown("### 6.2 Distribution and Relationship of Composite Scores")
-    
-    # --- Baris 2: Histogram X_total & Y_total ---
-    col_hist_x, col_hist_y = st.columns(2)
-
-    with col_hist_x:
-        st.markdown("#### Histogram X_total (FOMO)")
-        st.pyplot(fig_hist_x) 
-        buf_hist_x = io.BytesIO() 
-        fig_hist_x.savefig(buf_hist_x, format="png", bbox_inches="tight")
-        buf_hist_x.seek(0)
-        st.download_button("Download X_total Histogram (PNG)", data=buf_hist_x, file_name="X_total_histogram.png", mime="image/png")
-        plt.close(fig_hist_x) 
-    
-    with col_hist_y:
-        st.markdown("#### Histogram Y_total (Addiction)")
-        st.pyplot(fig_hist_y)
-        buf_hist_y = io.BytesIO() 
-        fig_hist_y.savefig(buf_hist_y, format="png", bbox_inches="tight")
-        buf_hist_y.seek(0)
-        st.download_button("Download Y_total Histogram (PNG)", data=buf_hist_y, file_name="Y_total_histogram.png", mime="image/png")
-        plt.close(fig_hist_y)
-        
-    st.markdown("---")
-
-    # --- Baris 3: Scatterplot X_total vs Y_total ---
-    col_scatter, _ = st.columns([1, 2]) # Scatterplot 1 kolom, kosong 2 kolom
-
-    with col_scatter:
-        st.markdown("#### Scatterplot X_total vs Y_total")
-        # Scatterplot harus dibuat ulang di sini
-        fig_scatter, ax_scatter = plt.subplots(figsize=(6, 4))
-        ax_scatter.scatter(valid_xy["X_total"], valid_xy["Y_total"], color='purple', alpha=0.6)
-        m, b = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
-        ax_scatter.plot(valid_xy["X_total"], m*valid_xy["X_total"] + b, color='red', linestyle='--')
-        
-        ax_scatter.set_xlabel("X_total (FOMO)")
-        ax_scatter.set_ylabel("Y_total (Social media addiction)")
-        ax_scatter.set_title("Scatterplot of X_total vs Y_total")
-        st.pyplot(fig_scatter)
-
-        buf_scat = io.BytesIO()
-        fig_scatter.savefig(buf_scat, format="png", bbox_inches="tight")
-        buf_scat.seek(0)
-        st.download_button(
-            "Download Scatterplot (PNG)",
-            data=buf_scat,
-            file_name="scatter_X_total_Y_total.png",
-            mime="image/png",
-        )
-        plt.close(fig_scatter)
-    
-    st.markdown("---")
-    
-    # ------------------------------------------------------------------
-    st.markdown("### 6.3 Frequency Distribution of Individual Items")
-    all_items = x_items + y_items
-    
-    for i in range(0, len(all_items), 2):
-        col1, col2 = st.columns(2)
-        
-        # Item Pertama di kolom kiri
-        item1 = all_items[i]
-        with col1:
-            st.markdown(f"**{item1}**")
-            create_item_bar_chart(df, item1) 
-            
-        # Item Kedua di kolom kanan (jika ada)
-        if i + 1 < len(all_items):
-            item2 = all_items[i+1]
-            with col2:
-                st.markdown(f"**{item2}**")
-                create_item_bar_chart(df, item2)
-        
-        st.markdown("")
-
-    st.markdown("### 6.4 All Item Response Distribution (X1-Y5)")
-    st.info("Visualisasi ini menunjukkan distribusi persentase setiap kategori respons (1 hingga 5) untuk semua item FOMO (X) dan Addiction (Y) secara bersamaan.")
-
-    all_items = x_items + y_items
-    
-    # Menghitung persentase respons untuk setiap kategori (1-5) per item
-    freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
-    freq_data = freq_data.fillna(0).sort_index()
-
-    # Pastikan index kolom ada dari 1 sampai 5
-    for i in range(1, 6):
-        if i not in freq_data.columns:
-            freq_data[i] = 0.0
-
-    freq_data = freq_data.sort_index(axis=1)
-
-    # Buat Bar Chart Tumpuk (Stacked Bar Chart)
-    fig_stacked, ax_stacked = plt.subplots(figsize=(10, 6))
-    
-    # Plot data
-    # Kategori 1 sampai 5 akan menjadi kolom yang ditumpuk
-    freq_data.plot(kind='bar', stacked=True, ax=ax_stacked, 
-                   color=plt.cm.RdYlBu(np.linspace(0.1, 0.9, 5))) # Memilih palet warna
-    
-    # Keterangan & Judul
-    ax_stacked.set_title("Response Percentage Across All Items (X & Y)")
-    ax_stacked.set_xlabel("Survey Item")
-    ax_stacked.set_ylabel("Percentage (%)")
-    ax_stacked.legend(title="Response Score", bbox_to_anchor=(1.05, 1), loc='upper left')
-    ax_stacked.tick_params(axis='x', rotation=45)
-    plt.tight_layout()
-    
-    st.pyplot(fig_stacked)
-
-    # Tombol download
-    buf_stacked = io.BytesIO()
-    fig_stacked.savefig(buf_stacked, format="png", bbox_inches="tight")
-    buf_stacked.seek(0)
-    st.download_button(
-        "Download All Item Stacked Bar Chart (PNG)",
-        data=buf_stacked,
-        file_name="all_items_stacked_bar_chart.png",
-        mime="image/png",
-    )
-    plt.close(fig_stacked)
-
-# ------------------ TAB PDF REPORT (MODIFIED UNTUK SEMUA FREQUENCY) ------------------
+# ------------------ TAB PDF REPORT (FINAL MODIFIED VERSION) ------------------
 with tab_pdf:
     st.markdown("### 8. Export PDF Report")
 
+    # 1. TAMBAH INPUT NAMA FILE
+    pdf_filename = st.text_input(
+        "Nama file PDF yang akan diunduh (tanpa .pdf):",
+        value="Laporan_Analisis_FOMO_GenZ"
+    )
+    
+    # 2. TAMBAH PILIHAN JUMLAH GRAFIK HORIZONTAL
+    st.markdown("---")
+    st.write("**Pengaturan Visualisasi Layout dalam PDF:**")
+    cols_per_row = st.radio(
+        "Jumlah Grafik per Baris:",
+        options=[1, 2, 3], # Opsi 1 (vertikal), 2, atau 3
+        index=2, # Default 3
+        horizontal=True
+    )
+    
+    st.markdown("---")
     st.write("Pilih konten yang ingin dimasukkan ke PDF:")
 
     include_items = st.checkbox("Descriptive statistics – items (X & Y)", value=True)
@@ -780,16 +652,26 @@ with tab_pdf:
     include_demo = st.checkbox("Demographic summary (Age & Gender)", value=True)
     include_normality = st.checkbox("Normality test result (Shapiro–Wilk)", value=True)
     
-    # MODIFIKASI CHECKBOX: Sekarang mencakup SEMUA item X dan Y
+    st.markdown("---")
+    st.markdown("**Visualizations**")
+    
     include_freq_plot = st.checkbox("Frequency bar charts (All X and Y items)", value=True) 
     include_hist_x_plot = st.checkbox("Histogram X_total", value=True)
     include_hist_y_plot = st.checkbox("Histogram Y_total", value=True)
     include_scatter_plot = st.checkbox("Scatterplot X_total vs Y_total", value=True)
     include_age_plot = st.checkbox("Demographic bar chart (Age Group)", value=True)
 
+
     if st.button("Generate PDF Report"):
         styles = getSampleStyleSheet()
         story = []
+
+        story.append(Paragraph("Survey Analysis Report", styles["Title"]))
+        story.append(Spacer(1, 12))
+        # ... (Kode Data Cleaning, Group Members, dan add_table tetap sama) ...
+        # [Bagian ini diabaikan untuk keringkasan, tapi asumsikan add_table dan paragraf awal ada]
+        
+        # --- LOGIKA KODE UNTUK PEMBUATAN PDF DIMULAI ---
 
         story.append(Paragraph("Survey Analysis Report", styles["Title"]))
         story.append(Spacer(1, 12))
@@ -847,10 +729,7 @@ with tab_pdf:
             add_table("Normality Test (Shapiro–Wilk)", result_norm)
         
         if include_demo:
-            # Age group table
             add_table("Demographic Summary – Age Group", age_demo_df)
-
-            # Gender table (if available)
             if gender_demo_df is not None:
                 add_table("Demographic Summary – Gender", gender_demo_df)
 
@@ -867,9 +746,34 @@ with tab_pdf:
 
         temp_imgs = []
         
-        # Age Group Bar Chart
+        # --- HELPER UNTUK GRAFIK HORIZONTAL ---
+        
+        # Hitung lebar dan tinggi grafik berdasarkan jumlah kolom
+        # Lebar halaman standar ReportLab adalah 600 unit
+        if cols_per_row == 1:
+            plot_width = 450
+            plot_height = 300
+        elif cols_per_row == 2:
+            plot_width = 280
+            plot_height = 200
+        else: # 3 kolom
+            plot_width = 190
+            plot_height = 150
+            
+        def add_plot_to_list(fig, title_text, temp_list, width, height):
+            """Saves plot to temp file and returns filename and title."""
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+            fig.savefig(tmp_file.name, bbox_inches="tight")
+            plt.close(fig)
+            temp_list.append(tmp_file.name)
+            return {'title': title_text, 'file': tmp_file.name, 'width': width, 'height': height}
+
+        
+        # --- KUMPULKAN SEMUA GRAFIK YANG DIPILIH KE DALAM LIST ---
+        plots_to_render = []
+
+        # 1. Age Group Bar Chart
         if include_age_plot:
-            # Recreate the plot since it was closed after tab_vis display
             fig_pdf_age, ax_pdf_age = plt.subplots(figsize=(8, 5))
             age_counts.plot(kind='bar', ax=ax_pdf_age, color='skyblue', edgecolor='black')
             ax_pdf_age.set_title("Distribution of Respondents by Age Group")
@@ -877,108 +781,89 @@ with tab_pdf:
             ax_pdf_age.set_ylabel("Frequency")
             ax_pdf_age.tick_params(axis='x', rotation=45)
             plt.tight_layout()
-            
-            tmp_age = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-            fig_pdf_age.savefig(tmp_age.name, bbox_inches="tight")
-            plt.close(fig_pdf_age)
-            temp_imgs.append(tmp_age.name)
-            
-            story.append(Paragraph("Demographic Bar Chart – Age Group", styles["Heading3"]))
-            story.append(RLImage(tmp_age.name, width=400, height=300))
-            story.append(Spacer(1, 10))
+            plots_to_render.append(add_plot_to_list(fig_pdf_age, "Demographic – Age Group", temp_imgs, 400, 300))
 
-
-        # FREQUENCY BAR CHARTS - SEMUA ITEM (X1-Y5)
+        # 2. FREQUENCY BAR CHARTS - SEMUA ITEM (X1-Y5)
         if include_freq_plot:
-            # Asumsikan all_items sudah terdefinisi:
-            try:
-                all_items = x_items + y_items
-            except NameError:
-                # Fallback/Assumption if not defined
-                x_items = ['X1', 'X2', 'X3', 'X4', 'X5']
-                y_items = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5']
-                all_items = x_items + y_items
-
-            story.append(Paragraph("Frequency Bar Charts – Individual Items", styles["Heading2"]))
-            story.append(Spacer(1, 10))
-
-            # Loop melalui semua item
+            all_items = x_items + y_items
             for var in all_items:
-                # Recreate the plot for the current variable
                 fig_pdf_bar, ax_pdf_bar = plt.subplots(figsize=(6, 4))
-                
-                # Re-calculate frequency 
                 s_freq = df[var].dropna()
                 freq = s_freq.value_counts().sort_index()
-                
-                # Draw the bar chart
                 ax_pdf_bar.bar(freq.index.astype(str), freq.values)
                 ax_pdf_bar.set_xlabel(var)
                 ax_pdf_bar.set_ylabel("Frequency")
                 ax_pdf_bar.set_title(f"Frequency of {var}")
+                plots_to_render.append(add_plot_to_list(fig_pdf_bar, f"Freq. – {var}", temp_imgs, plot_width, plot_height))
                 
-                # Save to temporary file
-                tmp_bar = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-                fig_pdf_bar.savefig(tmp_bar.name, bbox_inches="tight")
-                plt.close(fig_pdf_bar)
-                temp_imgs.append(tmp_bar.name)
-
-                # Add to PDF story
-                story.append(Paragraph(f"Frequency Bar Chart – {var}", styles["Heading3"]))
-                story.append(RLImage(tmp_bar.name, width=400, height=300))
-                story.append(Spacer(1, 10))
-
-
-        # Histogram X_total
+        # 3. Histogram X_total
         if include_hist_x_plot:
-            fig_pdf_hist_x, ax_pdf_hist_x = plt.subplots()
+            fig_pdf_hist_x, ax_pdf_hist_x = plt.subplots(figsize=(6, 4))
             d_hist = valid_xy["X_total"].dropna()
             ax_pdf_hist_x.hist(d_hist, bins=5, edgecolor="black", color='lightcoral')
-            ax_pdf_hist_x.set_title("Histogram of X_total (FOMO)")
+            ax_pdf_hist_x.set_title("Histogram X_total (FOMO)")
             ax_pdf_hist_x.set_xlabel("X_total Score (FOMO)")
             ax_pdf_hist_x.set_ylabel("Frequency")
-            tmp_hist_x = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-            fig_pdf_hist_x.savefig(tmp_hist_x.name, bbox_inches="tight")
-            plt.close(fig_pdf_hist_x)
-            temp_imgs.append(tmp_hist_x.name)
-
-            story.append(Paragraph("Histogram of X_total (FOMO)", styles["Heading3"]))
-            story.append(RLImage(tmp_hist_x.name, width=400, height=300))
-            story.append(Spacer(1, 10))
+            plots_to_render.append(add_plot_to_list(fig_pdf_hist_x, "Histogram X_total", temp_imgs, plot_width, plot_height))
             
-        # Histogram Y_total
+        # 4. Histogram Y_total
         if include_hist_y_plot:
-            fig_pdf_hist_y, ax_pdf_hist_y = plt.subplots()
+            fig_pdf_hist_y, ax_pdf_hist_y = plt.subplots(figsize=(6, 4))
             d_hist = valid_xy["Y_total"].dropna()
             ax_pdf_hist_y.hist(d_hist, bins=5, edgecolor="black", color='lightgreen')
-            ax_pdf_hist_y.set_title("Histogram of Y_total (Social Media Addiction)")
+            ax_pdf_hist_y.set_title("Histogram Y_total (Addiction)")
             ax_pdf_hist_y.set_xlabel("Y_total Score (Addiction)")
             ax_pdf_hist_y.set_ylabel("Frequency")
-            tmp_hist_y = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-            fig_pdf_hist_y.savefig(tmp_hist_y.name, bbox_inches="tight")
-            plt.close(fig_pdf_hist_y)
-            temp_imgs.append(tmp_hist_y.name)
+            plots_to_render.append(add_plot_to_list(fig_pdf_hist_y, "Histogram Y_total", temp_imgs, plot_width, plot_height))
 
-            story.append(Paragraph("Histogram of Y_total (Social Media Addiction)", styles["Heading3"]))
-            story.append(RLImage(tmp_hist_y.name, width=400, height=300))
-            story.append(Spacer(1, 10))
-
-        # Scatterplot
+        # 5. Scatterplot X_total vs Y_total
         if include_scatter_plot:
-            fig_pdf_sc, ax_pdf_sc = plt.subplots()
+            fig_pdf_sc, ax_pdf_sc = plt.subplots(figsize=(6, 4))
             ax_pdf_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"])
             ax_pdf_sc.set_xlabel("X_total (FOMO)")
             ax_pdf_sc.set_ylabel("Y_total (Social media addiction)")
-            ax_pdf_sc.set_title("Scatterplot of X_total vs Y_total")
-            tmp_sc = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-            fig_pdf_sc.savefig(tmp_sc.name, bbox_inches="tight")
-            plt.close(fig_pdf_sc)
-            temp_imgs.append(tmp_sc.name)
+            ax_pdf_sc.set_title("Scatterplot X_total vs Y_total")
+            plots_to_render.append(add_plot_to_list(fig_pdf_sc, "Scatterplot X vs Y", temp_imgs, plot_width, plot_height))
 
-            story.append(Paragraph("Scatterplot X_total vs Y_total", styles["Heading3"]))
-            story.append(RLImage(tmp_sc.name, width=400, height=300))
+
+        # --- RENDERING GRAFIK SECARA HORIZONTAL (DALAM TABEL REPORTLAB) ---
+        if plots_to_render:
+            story.append(Paragraph("Visualizations", styles["Heading2"]))
+            
+            rows = []
+            # Kelompokkan plots_to_render menjadi baris-baris dengan ukuran cols_per_row
+            for i in range(0, len(plots_to_render), cols_per_row):
+                row_plots = plots_to_render[i:i + cols_per_row]
+                
+                # Baris 1: Judul Grafik
+                title_row = [Paragraph(p['title'], styles['Caption']) for p in row_plots]
+                # Baris 2: Gambar Grafik
+                image_row = [RLImage(p['file'], width=p['width'], height=p['height']) for p in row_plots]
+                
+                rows.append(title_row)
+                rows.append(image_row)
+
+            # Hitung proporsi lebar kolom (misal 3 kolom, proporsi 33% per kolom)
+            col_widths = [None] * cols_per_row
+            
+            # Buat tabel untuk menampung semua grafik
+            tbl = Table(rows, colWidths=col_widths)
+            tbl.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.white),
+                ('BOX', (0, 0), (-1, -1), 0.25, colors.white),
+            ]))
+            story.append(tbl)
             story.append(Spacer(1, 10))
 
+
+        # --- FINALISASI PDF ---
+        
+        # Buat nama file yang aman dan tambahkan .pdf
+        safe_filename = "".join(c for c in pdf_filename if c.isalnum() or c in (' ', '_')).rstrip()
+        final_filename = (safe_filename if safe_filename else "Laporan_Analisis") + ".pdf"
+        
         tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
         doc = SimpleDocTemplate(tmp_pdf.name)
         doc.build(story)
@@ -989,10 +874,11 @@ with tab_pdf:
         st.download_button(
             "Download PDF Report",
             data=pdf_bytes,
-            file_name="survey_analysis_report.pdf",
+            file_name=final_filename, # Gunakan nama file yang dimasukkan pengguna
             mime="application/pdf",
         )
 
+        # Hapus file sementara
         for path in temp_imgs:
             try:
                 os.remove(path)
