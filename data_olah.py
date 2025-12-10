@@ -382,8 +382,6 @@ assoc_method = st.radio(
     index=0,
 )
 
-st.caption(f"Normality-based recommendation: {recommended_method}")
-
 assoc_stats = {}
 assoc_summary_text = ""
 
@@ -549,7 +547,13 @@ with tab_desc:
     plt.close(fig_bar)
 
 # --- Test Result/analysis ------
-    st.markdown(f"### 7 Association Analysis ({assoc_method})")
+
+with tab_assoc:
+    st.markdown("### 7.1 Normality Test Result")
+    st.dataframe(result_norm.round(4))
+    
+    st.markdown("---")
+    st.markdown(f"### 7.2 Association Analysis ({assoc_method})")
 
     if assoc_stats["type"] == "correlation":
         st.markdown(f"#### Hasil {assoc_stats['method']} Correlation")
