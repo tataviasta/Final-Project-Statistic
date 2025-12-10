@@ -828,52 +828,11 @@ with tab_pdf:
             for i in range(0, len(plots_to_render), cols_per_row):
                 row_plots = plots_to_render[i:i + cols_per_row]
                 
-                # Baris 1: Judul Grafik
-                title_row = [Paragraph(p['title'], styles['Caption']) for p in row_plots]
+                # Baris 1: Judul Grafik (MENGGUNAKAN styles['Normal'] sebagai pengganti styles['Caption'])
+                title_row = [Paragraph(p['title'], styles['Normal']) for p in row_plots]
+                
                 # Baris 2: Gambar Grafik
                 image_row = [RLImage(p['file'], width=p['width'], height=p['height']) for p in row_plots]
                 
                 rows.append(title_row)
                 rows.append(image_row)
-
-            # Hitung proporsi lebar kolom (misal 3 kolom, proporsi 33% per kolom)
-            col_widths = [None] * cols_per_row
-            
-            # Buat tabel untuk menampung semua grafik
-            tbl = Table(rows, colWidths=col_widths)
-            tbl.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.white),
-                ('BOX', (0, 0), (-1, -1), 0.25, colors.white),
-            ]))
-            story.append(tbl)
-            story.append(Spacer(1, 10))
-
-
-        # --- FINALISASI PDF ---
-        
-        # Buat nama file yang aman dan tambahkan .pdf
-        safe_filename = "".join(c for c in pdf_filename if c.isalnum() or c in (' ', '_')).rstrip()
-        final_filename = (safe_filename if safe_filename else "Laporan_Analisis") + ".pdf"
-        
-        tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-        doc = SimpleDocTemplate(tmp_pdf.name)
-        doc.build(story)
-
-        with open(tmp_pdf.name, "rb") as f:
-            pdf_bytes = f.read()
-
-        st.download_button(
-            "Download PDF Report",
-            data=pdf_bytes,
-            file_name=final_filename, # Gunakan nama file yang dimasukkan pengguna
-            mime="application/pdf",
-        )
-
-        # Hapus file sementara
-        for path in temp_imgs:
-            try:
-                os.remove(path)
-            except OSError:
-                pass
