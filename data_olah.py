@@ -658,9 +658,7 @@ if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
             r_value, p_value = stats.spearmanr(x_corr, y_corr)
             method_short = "Spearman"
 
-        # ... (fungsi interpret_strength, direction, strength, dan signif_text di sini) ...
-        # (pastikan semua variabel ini terdefinisi)
-
+        # Fungsi interpretasi kekuatan
         def interpret_strength(r):
             a = abs(r)
             if selected_lang == "English":
@@ -675,7 +673,8 @@ if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
                 elif a < 0.6: return "sedang"
                 elif a < 0.8: return "kuat"
                 else: return "sangat kuat"
-
+        
+        # Penafsiran hasil
         direction = "positive" if r_value > 0 else "negative"
         if selected_lang == "Indonesia":
             direction = "positif" if r_value > 0 else "negatif"
@@ -704,12 +703,17 @@ if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
             p_value=p_value,
             signif_text=signif_text,
         )
+        
+        # Tambahkan visualisasi interpretasi kekuatan di sini
+        st.markdown(f"**Visual Interpretation of Correlation Strength / Interpretasi Kekuatan Korelasi Visual**")
+         # TAG GAMBAR INSTRUKTIF
+        
     except Exception as e:
         assoc_summary_text = f"Gagal menghitung korelasi. Detail: {e}"
         st.error(assoc_summary_text)
 
 # ------------------------------------------------------------------
-# 7. TABS
+# 7. TABS (Lanjutkan ke bagian ini)
 # ------------------------------------------------------------------
 
 # Prepare Age Group Bar Chart (for tab_vis & pdf)
