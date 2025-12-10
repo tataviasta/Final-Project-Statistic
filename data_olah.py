@@ -67,7 +67,6 @@ with st.expander("See all column names (headers):"):
 # ------------------------------------------------------------------
 # 1A. DATA CLEANING – PAKAI KATEGORI UMUR 13–18 / 19–23 / 24–28
 # ------------------------------------------------------------------
-st.subheader("Data Cleaning – Filter Usia & Pengelompokan")
 
 # Deteksi kolom umur otomatis (mengandung 'age' atau 'umur')
 AGE_COLUMN = None
@@ -266,7 +265,7 @@ else:
     df["X_total"] = df[x_items].sum(axis=1)
     df["Y_total"] = df[y_items].sum(axis=1)
 
-st.success("✅ Composite scores X_total dan Y_total berhasil dibuat.")
+st.success("✅ Composite scores X_total and Y_total have been successfully created.")
 
 valid_xy = df[["X_total", "Y_total"]].dropna()
 n_valid = valid_xy.shape[0]
@@ -622,8 +621,8 @@ with tab_pdf:
 
     # 1. INPUT NAMA FILE
     pdf_filename = st.text_input(
-        "Nama file PDF yang akan diunduh (tanpa .pdf):",
-        value="Laporan_Analisis_FOMO_GenZ"
+        "The name of the PDF file to be downloaded (without .pdf):",
+        value=""
     )
     
     # 2. PILIHAN JUMLAH GRAFIK HORIZONTAL
@@ -631,8 +630,8 @@ with tab_pdf:
     st.write("**Pengaturan Visualisasi Layout dalam PDF:**")
     cols_per_row = st.radio(
         "Jumlah Grafik per Baris:",
-        options=[1, 2], # Opsi 1 (vertikal), 2, atau 3
-        index=1, # Default 3
+        options=[1], # Opsi 1 (vertikal), 2, atau 3
+        index=0, # Default 3
         horizontal=True
     )
     
@@ -734,12 +733,6 @@ with tab_pdf:
         if cols_per_row == 1:
             plot_width = 450
             plot_height = 300
-        elif cols_per_row == 2:
-            plot_width = 280
-            plot_height = 200
-        else: # 3 kolom
-            plot_width = 190
-            plot_height = 150
             
         # Hitung lebar ReportLab per kolom
         effective_page_width = 500.0
