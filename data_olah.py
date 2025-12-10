@@ -22,6 +22,7 @@ from reportlab.lib import colors
 # ------------------------------------------------------------------
 
 # 1. RESPONSE LABELS (Hanya English untuk internal konsisten)
+# Namun, LABEL display diubah agar sesuai dengan bahasa terpilih (SD / Sangat Tidak Setuju)
 RESPONSE_LABELS_EN = {
     1: "1 (SD: Strongly Disagree)",
     2: "2 (D: Disagree)",
@@ -151,7 +152,6 @@ LANGUAGES = {
         "no_data_chart": "No valid data found for {col_name}.",
         "vis_stacked": "#### 6.6 Stacked Bar Chart of Item Response Percentages",
         "corr_strength_header": "**Visual Interpretation of Correlation Strength**",
-        "corr_strength_diagram": "",
     },
     "Indonesia": {
         "title": "📊 Hubungan antara Fear of Missing Out (FOMO) dan Kecanduan Media Sosial pada Generasi Z",
@@ -272,7 +272,6 @@ LANGUAGES = {
         "no_data_chart": "Tidak ada data valid ditemukan untuk {col_name}.",
         "vis_stacked": "#### 6.6 Diagram Batang Bertumpuk Persentase Respon Item",
         "corr_strength_header": "**Interpretasi Kekuatan Korelasi Visual**",
-        "corr_strength_diagram": "",
     }
 }
 
@@ -591,7 +590,6 @@ else:
 
 st.info(f"{lang['normality_reco']} **{recommended_method}**")
 
-
 m1, m2, m3 = st.columns(3)
 m1.metric(lang["valid_resp_metric"], n_valid)
 m2.metric(lang["avg_fomo_metric"], f"{mean_x:.2f}")
@@ -678,14 +676,12 @@ if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
         x_corr = valid_xy["X_total"]
         y_corr = valid_xy["Y_total"]
 
-        # ********** PENGAMAN TAMBAHAN BARU **********
-        if x_corr.empty or y_corr.empty or len(x_corr) < 2:
-            assoc_summary_text = "ERROR: Not enough valid data for correlation calculation (N < 2). Check if all item scores (X1-Y5) are numeric and not missing after age filtering."
+        if x_corr.empty or y_corr.empty:
+            assoc_summary_text = "Not enough valid data for correlation calculation. Check your filtered data."
             st.error(assoc_summary_text)
-            # Use st.stop() to halt execution cleanly after an error in Streamlit.
-            st.stop()
-        # **********************************************
-
+            # Re-raise error to prevent proceeding with empty data
+            raise ValueError(assoc_summary_text)
+            
         if assoc_method.startswith("Pearson"):
             r_value, p_value = stats.pearsonr(x_corr, y_corr)
             method_short = "Pearson"
@@ -740,10 +736,8 @@ if assoc_method in ["Pearson Correlation", "Spearman Rank Correlation"]:
         )
         
     except Exception as e:
-        # Jika error lain terjadi (misalnya, data non-numeric yang lolos filter)
         assoc_summary_text = f"Failed to calculate correlation. Error: {e}"
         st.error(assoc_summary_text)
-        assoc_stats = {"type": "error"} # Set to error state
 
 
 elif assoc_method.startswith("Chi-square"):
@@ -766,32 +760,28 @@ elif assoc_method.startswith("Chi-square"):
         assoc_stats = {"type": "none"}
         st.stop()
         
-    try:
-        chi2_value, p_chi, dof, expected = stats.chi2_contingency(contingency)
-        signif_text = lang["corr_signif"] if p_chi < 0.05 else lang["corr_not_signif"]
+    chi2_value, p_chi, dof, expected = stats.chi2_contingency(contingency)
+    signif_text = lang["corr_signif"] if p_chi < 0.05 else lang["corr_not_signif"]
 
-        assoc_stats = {
-            "type": "chi-square",
-            "method": "Chi-square",
-            "chi2": chi2_value,
-            "p": p_chi,
-            "dof": dof,
-            "x": chi_x_col,
-            "y": chi_y_col,
-            "signif_text": signif_text,
-        }
+    assoc_stats = {
+        "type": "chi-square",
+        "method": "Chi-square",
+        "chi2": chi2_value,
+        "p": p_chi,
+        "dof": dof,
+        "x": chi_x_col,
+        "y": chi_y_col,
+        "signif_text": signif_text,
+    }
 
-        assoc_summary_text = lang["chi_summary_template"].format(
-            x=chi_x_col, 
-            y=chi_y_col, 
-            chi2_value=chi2_value, 
-            dof=dof, 
-            p_chi=p_chi, 
-            signif_text=signif_text
-        )
-    except Exception as e:
-        st.error(f"Failed to calculate Chi-square. Error: {e}")
-        assoc_stats = {"type": "error"} # Set to error state
+    assoc_summary_text = lang["chi_summary_template"].format(
+        x=chi_x_col, 
+        y=chi_y_col, 
+        chi2_value=chi2_value, 
+        dof=dof, 
+        p_chi=p_chi, 
+        signif_text=signif_text
+    )
 
 
 # ------------------------------------------------------------------
@@ -810,6 +800,9 @@ buf_age_bar = io.BytesIO()
 fig_age_bar.savefig(buf_age_bar, format="png", bbox_inches="tight")
 buf_age_bar.seek(0)
 plt.close(fig_age_bar)
+
+# NOTE: fig_hist_x and fig_hist_y must be recreated if needed in PDF/Analysis tab
+# but we need to keep the data processing clean.
 
 tab_desc, tab_vis, tab_assoc, tab_pdf = st.tabs(
     [lang["tab_desc"], lang["tab_vis"], lang["tab_assoc"], lang["tab_pdf"]]
@@ -929,6 +922,7 @@ with tab_vis:
     ax_stacked.set_title(lang["plot_stacked_title"])
     ax_stacked.set_xlabel("Survey Item / Item Kuesioner")
     ax_stacked.set_ylabel(lang["desc_perc"])
+    # Map the legend keys to the short labels (1->SD, 5->SA)
     legend_labels_short = {i: RESPONSE_LABELS[i].split(' ')[0] for i in range(1, 6)}
     ax_stacked.legend(title="Response Score / Skor Respon", labels=[legend_labels_short[col] for col in freq_data.columns], bbox_to_anchor=(1.05, 1), loc='upper left')
     ax_stacked.tick_params(axis='x', rotation=45)
@@ -970,7 +964,8 @@ with tab_assoc:
         # Tambahkan diagram instruktif interpretasi korelasi di sini
         st.markdown("---")
         st.markdown(lang["corr_strength_header"])
-        st.markdown(lang["corr_strength_diagram"])
+        # Diagram instruktif interpretasi korelasi
+        st.markdown("")
         
         st.markdown("---")
         st.markdown(lang["corr_visual_check"])
@@ -1016,9 +1011,6 @@ with tab_assoc:
         contingency = pd.crosstab(df[assoc_stats['x']], df[assoc_stats['y']])
         st.dataframe(contingency)
         
-    elif assoc_stats["type"] == "error":
-         st.error(assoc_summary_text)
-        
     else:
         st.warning(lang["no_assoc_method"])
 
@@ -1036,6 +1028,7 @@ with tab_pdf:
     st.markdown("---")
     st.write(lang["pdf_vis_settings"])
     
+    # Pilihan 1/2/3 dihilangkan karena ReportLab sering bermasalah dengan tata letak kompleks
     cols_per_row = st.radio(
         lang["pdf_cols_per_row"],
         options=[1], 
@@ -1134,17 +1127,10 @@ with tab_pdf:
             if gender_demo_df is not None: add_table(lang["gender_dist_header"].strip('*'), gender_demo_df, gender_demo_df.columns[0])
         if include_items: add_table(lang["desc_item_header"].strip('#'), desc_items)
         if include_comp: add_table(lang["desc_comp_header"].strip('#'), desc_comp)
-        if include_corr and assoc_stats["type"] == "correlation":
+        if include_corr:
             story.append(Paragraph(lang["pdf_include_corr"], styles["Heading3"]))
             story.append(Paragraph(assoc_summary_text, styles["Normal"]))
-            # Include correlation strength diagram instruction
-            story.append(Paragraph(lang["corr_strength_header"].strip('*'), styles["Normal"]))
-            story.append(Paragraph(lang["corr_strength_diagram"], styles["Normal"]))
             story.append(Spacer(1, 10))
-        elif include_corr and assoc_stats["type"] == "chi-square":
-             story.append(Paragraph(lang["pdf_include_corr"], styles["Heading3"]))
-             story.append(Paragraph(assoc_summary_text, styles["Normal"]))
-             story.append(Spacer(1, 10))
 
         
         # 3. COLLECT AND RENDER PLOTS
