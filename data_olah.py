@@ -722,22 +722,17 @@ def generate_pdf_report(
 
     # Histograms X_total / Y_total
     if include_hist_x_plot and "X_total" in valid_xy.columns:
-        fig_hx, ax_hx = plt.subplots(figsize=(6, 4))
-        ax_hx.hist(valid_xy["X_total"].dropna(), bins=5, edgecolor="black", color="lightcoral")
-        ax_hx.set_xlabel(t["x_total_score"])
-        ax_hx.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
-        ax_hx.set_title("Histogram X_total")
-        plt.tight_layout()
-        add_plot(fig_hx, ax_hx.get_title())
-
-    if include_hist_y_plot and "Y_total" in valid_xy.columns:
-        fig_hy, ax_hy = plt.subplots(figsize=(6, 4))
-        ax_hy.hist(valid_xy["Y_total"].dropna(), bins=5, edgecolor="black", color="lightgreen")
-        ax_hy.set_xlabel(t["y_total_score"])
-        ax_hy.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
-        ax_hy.set_title("Histogram Y_total")
-        plt.tight_layout()
-        add_plot(fig_hy, ax_hy.get_title())
+        try:
+            fig_hx, ax_hx = plt.subplots(figsize=(6, 4))
+            ax_hx.hist(valid_xy["X_total"].dropna(), bins=5, edgecolor="black", color="lightcoral")
+            ax_hx.set_xlabel(t["x_total_score"])
+            ax_hx.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
+            ax_hx.set_title("Histogram X_total")
+            plt.tight_layout()
+            add_plot(fig_hx, ax_hx.get_title())
+        except Exception as plot_e:
+            print(f"Histogram X creation failed: {plot_e}")
+            plt.close("all")
 
     # Scatter
     if include_scatter_plot and {"X_total", "Y_total"}.issubset(valid_xy.columns):
