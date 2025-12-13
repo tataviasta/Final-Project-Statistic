@@ -529,6 +529,30 @@ def generate_pdf_report(
         story.append(tbl)
         story.append(Spacer(1, 10))
 
+    def add_frequency_table(item_name, freq_table):
+        """Add frequency table for a single item"""
+        if freq_table is None or freq_table.empty:
+            return
+        
+        story.append(Paragraph(f"Frequency Table: {item_name}", styles["Heading4"]))
+        
+        # Prepare table data
+        freq_reset = freq_table.reset_index()
+        table_data = [freq_reset.columns.tolist()] + freq_reset.values.tolist()
+        
+        tbl = Table(table_data)
+        tbl.setStyle(
+            TableStyle(
+                [
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                    ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+                ]
+            )
+        )
+        story.append(tbl)
+        story.append(Spacer(1, 8))
+
     def add_plot(fig, title_text, width=400, height=250):
         if fig is None:
             return
@@ -537,7 +561,6 @@ def generate_pdf_report(
         plt.close(fig)
         temp_imgs.append(tmp_file.name)
         story.append(Paragraph(title_text, styles["Heading4"]))
-        # Fixed: Remove preserveAspectRatio parameter
         img = RLImage(tmp_file.name, width=width, height=height)
         story.append(img)
         story.append(Spacer(1, 10))
@@ -560,6 +583,7 @@ def generate_pdf_report(
         )
         demo_title = "Demographic Summary – Age Group"
         gender_title = "Demographic Summary – Gender"
+        freq_table_title = "Frequency Tables for Survey Items"
         vis_title = "Visualizations"
     else:
         main_title = "Laporan Analisis Survei"
@@ -578,6 +602,7 @@ def generate_pdf_report(
         )
         demo_title = "Ringkasan Demografi – Kelompok Usia"
         gender_title = "Ringkasan Demografi – Jenis Kelamin"
+        freq_table_title = "Tabel Frekuensi untuk Item Survei"
         vis_title = "Visualisasi"
 
     story.append(Paragraph(main_title, styles["Title"]))
@@ -631,6 +656,35 @@ def generate_pdf_report(
             desc_comp,
         )
 
+    # Add frequency tables for all items
+    if include_items:
+        story.append(Paragraph(freq_table_title, styles["Heading3"]))
+        story.append(Spacer(1, 10))
+        
+        all_items_list = list(x_items) + list(y_items)
+        for var in all_items_list:
+            if var not in df.columns:
+                continue
+            s_freq = df[var].dropna()
+            if s_freq.empty:
+                continue
+            freq = s_freq.value_counts().sort_index()
+            perc = (freq / freq.sum() * 100).round(2)
+            freq_table = pd.DataFrame({t["frequency"]: freq, t["percentage"]: perc})
+            
+            # Add response labels if applicable
+            if freq_table.index.dtype in [int, float] and freq_table.index.max() <= 5:
+                # Create a copy with labeled index for display
+                freq_table_display = freq_table.copy()
+                RESPONSE_LABELS = RESPONSE_LABELS_EN if lang_code == "en" else RESPONSE_LABELS_ID
+                labeled_index = freq_table.index.map(lambda x: RESPONSE_LABELS.get(x, x))
+                freq_table_display.index = labeled_index
+                freq_table_display.index.name = "Response"
+            else:
+                freq_table_display = freq_table
+            
+            add_frequency_table(var, freq_table_display)
+
     if include_corr and assoc_summary_text:
         story.append(
             Paragraph(
@@ -677,9 +731,9 @@ def generate_pdf_report(
             ax_bar.set_xlabel(var)
             ax_bar.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
             if lang_code == "en":
-                ax_bar.set_title(f"Frequency of {var}")
+                ax_bar.set_title(f"Frequency Chart: {var}")
             else:
-                ax_bar.set_title(f"Frekuensi {var}")
+                ax_bar.set_title(f"Grafik Frekuensi: {var}")
             plt.tight_layout()
             figures_to_add.append((fig_bar, ax_bar.get_title()))
 
@@ -1336,6 +1390,9 @@ with tab_pdf:
     include_corr = st.checkbox(t["include_corr"], value=True)
     include_demo = st.checkbox(t["include_demo"], value=True)
     include_normality = st.checkbox(t["include_normality"], value=True)
+    
+    # Add a checkbox specifically for frequency tables
+    include_freq_tables = st.checkbox("Frequency Tables (for all X & Y items)", value=True)
 
     st.markdown("---")
     st.markdown(t["visualizations_pdf"])
