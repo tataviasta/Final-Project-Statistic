@@ -530,12 +530,13 @@ def generate_pdf_report(
         story.append(Spacer(1, 10))
 
     def add_plot(fig, title_text, width=400):
-        tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-        fig.savefig(tmp_file.name, bbox_inches="tight")
+        img_buffer = io.BytesIO()
+        fig.savefig(img_buffer, format="png", bbox_inches="tight")
         plt.close(fig)
-        temp_imgs.append(tmp_file.name)
+        img_buffer.seek(0)
         story.append(Paragraph(title_text, styles["Heading4"]))
-        img = RLImage(tmp_file.name, width=width, preserveAspectRatio=True, mask="auto")
+        # Gunakan buffer sebagai sumber ReportLab Image
+        img = RLImage(img_buffer, width=width, preserveAspectRatio=True, mask="auto")
         story.append(img)
         story.append(Spacer(1, 10))
 
