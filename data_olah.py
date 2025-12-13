@@ -4,7 +4,7 @@ import numpy as np
 from scipy import stats
 import plotly.express as px
 import plotly.graph_objects as go
-
+from reportlab.lib.utils import ImageReader
 import matplotlib.pyplot as plt
 
 from reportlab.platypus import (
@@ -534,6 +534,7 @@ def generate_pdf_report(
         fig.savefig(img_buffer, format="png", bbox_inches="tight")
         plt.close(fig)
         img_buffer.seek(0)
+        reportlab_image_source = ImageReader(img_buffer)
         story.append(Paragraph(title_text, styles["Heading4"]))
         # Gunakan buffer sebagai sumber ReportLab Image
         img = RLImage(img_buffer, width=width, preserveAspectRatio=True, mask="auto")
