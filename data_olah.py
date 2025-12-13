@@ -535,7 +535,7 @@ def generate_pdf_report(
         plt.close(fig)
         temp_imgs.append(tmp_file.name)
         story.append(Paragraph(title_text, styles["Heading4"]))
-        img = RLImage(tmp_file.name, width=width, preserveAspectRatio=True, mask="auto")
+        img = RLImage(tmp_file.name, width=width, kind='proportional', mask="auto")
         story.append(img)
         story.append(Spacer(1, 10))
 
