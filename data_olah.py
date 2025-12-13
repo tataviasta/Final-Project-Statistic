@@ -529,7 +529,7 @@ def generate_pdf_report(
         story.append(tbl)
         story.append(Spacer(1, 10))
 
-    def add_plot(fig, title_text, width=400):
+    def add_plot(fig, title_text, width=400, height=250):
         if fig is None:
             return
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
@@ -537,7 +537,8 @@ def generate_pdf_report(
         plt.close(fig)
         temp_imgs.append(tmp_file.name)
         story.append(Paragraph(title_text, styles["Heading4"]))
-        img = RLImage(tmp_file.name, width=width, preserveAspectRatio=True, mask="auto")
+        # Fixed: Remove preserveAspectRatio parameter
+        img = RLImage(tmp_file.name, width=width, height=height)
         story.append(img)
         story.append(Spacer(1, 10))
 
@@ -721,7 +722,7 @@ def generate_pdf_report(
     if include_hist_x_plot and valid_xy is not None and "X_total" in valid_xy.columns:
         any_plot = True
         fig_hx, ax_hx = plt.subplots(figsize=(6, 4))
-        ax_hx.hist(valid_xy["X_total"].dropna(), bins=5, edgecolor="black", color="lightcoral")
+        ax_hx.hist(valid_xy["X_total"].dropna(), bins=10, edgecolor="black", color="lightcoral")
         ax_hx.set_xlabel(t["x_total_score"])
         ax_hx.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
         ax_hx.set_title("Histogram X_total")
@@ -731,7 +732,7 @@ def generate_pdf_report(
     if include_hist_y_plot and valid_xy is not None and "Y_total" in valid_xy.columns:
         any_plot = True
         fig_hy, ax_hy = plt.subplots(figsize=(6, 4))
-        ax_hy.hist(valid_xy["Y_total"].dropna(), bins=5, edgecolor="black", color="lightgreen")
+        ax_hy.hist(valid_xy["Y_total"].dropna(), bins=10, edgecolor="black", color="lightgreen")
         ax_hy.set_xlabel(t["y_total_score"])
         ax_hy.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
         ax_hy.set_title("Histogram Y_total")
@@ -770,7 +771,7 @@ def generate_pdf_report(
         pdf_bytes = buffer.getvalue()
         return final_filename, pdf_bytes, None
     except Exception as e:
-        return final_filename, None, e
+        return final_filename, None, str(e)
     finally:
         # Clean up temporary image files
         for path in temp_imgs:
@@ -778,7 +779,6 @@ def generate_pdf_report(
                 os.remove(path)
             except OSError:
                 pass
-
 
 # ------------------------------------------------------------------
 # STREAMLIT APP
@@ -1348,11 +1348,9 @@ with tab_pdf:
 
     if st.button(t["generate_pdf"]):
         # Ensure all required data is available
-        if not hasattr(st.session_state, 'assoc_summary_text'):
+        if 'assoc_summary_text' not in locals() and 'assoc_summary_text' not in globals():
             assoc_summary_text = ""  # Provide default if not set
-        else:
-            assoc_summary_text = st.session_state.assoc_summary_text
-            
+        
         # Ensure age_counts is available
         if age_counts is None or age_counts.empty:
             age_counts = df["Age_Group"].value_counts().sort_index()
@@ -1366,7 +1364,25 @@ with tab_pdf:
         desc_comp = descriptive_table(df, ["X_total", "Y_total"], t)
         
         # Ensure result_norm is available
-        result_norm, _, _ = compute_normality(valid_xy, t)
+        if valid_xy is not None and not valid_xy.empty:
+            result_norm, _, _ = compute_normality(valid_xy, t)
+        else:
+            result_norm = pd.DataFrame(columns=[t["variable"], t["statistic"], t["p_value"], t["normality"]])
+
+        # Prepare gender demo dataframe if available
+        if GENDER_COLUMN is not None and GENDER_COLUMN in df.columns:
+            gender_counts = df[GENDER_COLUMN].value_counts().sort_index()
+            gender_demo_df = pd.DataFrame(
+                {
+                    "Gender": gender_counts.index,
+                    t["frequency"]: gender_counts.values,
+                }
+            )
+            gender_demo_df[t["percentage"]] = (
+                gender_demo_df[t["frequency"]] / gender_demo_df[t["frequency"]].sum() * 100
+            ).round(2)
+        else:
+            gender_demo_df = None
 
         filename, pdf_bytes, err = generate_pdf_report(
             selected_lang,
@@ -1401,8 +1417,9 @@ with tab_pdf:
         if err is not None or pdf_bytes is None:
             st.error(t["pdf_error"].format(err))
         else:
+            # Create download button
             st.download_button(
-                t["download_pdf"],
+                label=t["download_pdf"],
                 data=pdf_bytes,
                 file_name=filename,
                 mime="application/pdf",
