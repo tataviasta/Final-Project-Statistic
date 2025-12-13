@@ -504,8 +504,6 @@ def generate_pdf_report(
     story = []
     temp_imgs = []
 
-    DEFAULT_PLOT_WIDTH = 350 
-
     safe_filename = "".join(c for c in pdf_filename if c.isalnum() or c in (" ", "_")).rstrip()
     final_filename = (safe_filename if safe_filename else "Laporan_Analisis") + ".pdf"
 
@@ -518,10 +516,7 @@ def generate_pdf_report(
         story.append(Paragraph(title, styles["Heading3"]))
         df_reset = df_table.reset_index()
         table_data = [df_reset.columns.tolist()] + df_reset.values.tolist()
-        
-        col_widths = None
-        
-        tbl = Table(table_data, colWidths=col_widths)
+        tbl = Table(table_data)
         tbl.setStyle(
             TableStyle(
                 [
@@ -534,19 +529,15 @@ def generate_pdf_report(
         story.append(tbl)
         story.append(Spacer(1, 10))
 
-    def add_plot(fig, title_text, width=DEFAULT_PLOT_WIDTH):
+    def add_plot(fig, title_text, width=400):
+        if fig is None:
+            return
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-        
-        if fig.canvas is None:
-            fig.canvas = plt.get_current_fig_manager().canvas
-        fig.canvas.draw()
-        
         fig.savefig(tmp_file.name, bbox_inches="tight")
         plt.close(fig)
         temp_imgs.append(tmp_file.name)
-        
         story.append(Paragraph(title_text, styles["Heading4"]))
-        img = RLImage(tmp_file.name, width=width, kind='proportional')
+        img = RLImage(tmp_file.name, width=width, preserveAspectRatio=True, mask="auto")
         story.append(img)
         story.append(Spacer(1, 10))
 
@@ -587,7 +578,7 @@ def generate_pdf_report(
         demo_title = "Ringkasan Demografi – Kelompok Usia"
         gender_title = "Ringkasan Demografi – Jenis Kelamin"
         vis_title = "Visualisasi"
-        
+
     story.append(Paragraph(main_title, styles["Title"]))
     story.append(Spacer(1, 12))
     story.append(Paragraph(subtitle, styles["Heading2"]))
@@ -610,19 +601,20 @@ def generate_pdf_report(
     story.append(Paragraph(resp_text, styles["Normal"]))
     story.append(Spacer(1, 12))
 
-    # Tables
-    if include_normality:
+    # Tables - Ensure data exists
+    if include_normality and result_norm is not None and not result_norm.empty:
         add_table(
             "Normality Test (Shapiro–Wilk)" if lang_code == "en" else "Uji Normalitas (Shapiro–Wilk)",
             result_norm,
         )
 
     if include_demo:
-        add_table(demo_title, age_demo_df)
+        if age_demo_df is not None and not age_demo_df.empty:
+            add_table(demo_title, age_demo_df)
         if gender_demo_df is not None and not gender_demo_df.empty:
             add_table(gender_title, gender_demo_df)
 
-    if include_items:
+    if include_items and desc_items is not None and not desc_items.empty:
         add_table(
             "Descriptive Statistics – Selected Items"
             if lang_code == "en"
@@ -630,7 +622,7 @@ def generate_pdf_report(
             desc_items,
         )
 
-    if include_comp:
+    if include_comp and desc_comp is not None and not desc_comp.empty:
         add_table(
             "Descriptive Statistics – Composite Scores (X_total & Y_total)"
             if lang_code == "en"
@@ -650,75 +642,60 @@ def generate_pdf_report(
         story.append(Paragraph(assoc_summary_text, styles["Normal"]))
         story.append(Spacer(1, 10))
 
-    # Visualizations
-    any_plot = any(
-        [
-            include_age_plot,
-            include_freq_plot,
-            include_stacked_plot,
-            include_hist_x_plot,
-            include_hist_y_plot,
-            include_scatter_plot,
-        ]
-    )
+    # Visualizations - Create figures as needed
+    any_plot = False
+    figures_to_add = []
 
-    if any_plot:
-        story.append(Paragraph(vis_title, styles["Heading2"]))
-        story.append(Spacer(1, 10))
-
-    # Age bar (Width set to DEFAULT_PLOT_WIDTH)
+    # Age bar
     if include_age_plot and age_counts is not None and not age_counts.empty:
-        try:
-            fig_age, ax_age = plt.subplots(figsize=(6, 4))
-            age_counts.plot(kind="bar", ax=ax_age, color="skyblue", edgecolor="black")
-            ax_age.set_xlabel(t["age_group"])
-            ax_age.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
-            if lang_code == "en":
-                ax_age.set_title("Distribution of Respondents by Age Group")
-            else:
-                ax_age.set_title("Distribusi Responden Berdasarkan Kelompok Usia")
-            plt.tight_layout()
-            add_plot(fig_age, ax_age.get_title(), width=DEFAULT_PLOT_WIDTH)
-        except Exception as e:
-            print(f"Age Plot Failed: {e}")
-            plt.close('all')
+        any_plot = True
+        fig_age, ax_age = plt.subplots(figsize=(6, 4))
+        age_counts.plot(kind="bar", ax=ax_age, color="skyblue", edgecolor="black")
+        ax_age.set_xlabel(t["age_group"])
+        ax_age.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
+        if lang_code == "en":
+            ax_age.set_title("Distribution of Respondents by Age Group")
+        else:
+            ax_age.set_title("Distribusi Responden Berdasarkan Kelompok Usia")
+        plt.tight_layout()
+        figures_to_add.append((fig_age, ax_age.get_title()))
 
-    # Per-item frequency plots (Width set to DEFAULT_PLOT_WIDTH)
-    all_items = list(x_items) + list(y_items)
-    if include_freq_plot and all_items:
-        for var in all_items:
+    # Per-item frequency plots
+    all_items_list = list(x_items) + list(y_items)
+    if include_freq_plot and all_items_list:
+        any_plot = True
+        for var in all_items_list:
             if var not in df.columns:
                 continue
             s_freq = df[var].dropna()
             if s_freq.empty:
                 continue
-            try:
-                freq = s_freq.value_counts().sort_index()
-                fig_bar, ax_bar = plt.subplots(figsize=(5, 3))
-                ax_bar.bar(freq.index.astype(str), freq.values)
-                ax_bar.set_xlabel(var)
-                ax_bar.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
-                if lang_code == "en":
-                    ax_bar.set_title(f"Frequency of {var}")
-                else:
-                    ax_bar.set_title(f"Frekuensi {var}")
-                plt.tight_layout()
-                add_plot(fig_bar, ax_bar.get_title(), width=DEFAULT_PLOT_WIDTH)
-            except Exception as e:
-                print(f"Frequency Plot for {var} Failed: {e}")
-                plt.close('all')
+            freq = s_freq.value_counts().sort_index()
+            fig_bar, ax_bar = plt.subplots(figsize=(5, 3))
+            ax_bar.bar(freq.index.astype(str), freq.values)
+            ax_bar.set_xlabel(var)
+            ax_bar.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
+            if lang_code == "en":
+                ax_bar.set_title(f"Frequency of {var}")
+            else:
+                ax_bar.set_title(f"Frekuensi {var}")
+            plt.tight_layout()
+            figures_to_add.append((fig_bar, ax_bar.get_title()))
 
-    # Stacked bar (percentage) (Width set larger to ensure readability)
-    if include_stacked_plot and all_items:
-        freq_data = df[all_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
-        freq_data = freq_data.fillna(0).sort_index()
+    # Stacked bar (percentage)
+    if include_stacked_plot and all_items_list:
+        any_plot = True
+        # Ensure we only use available columns
+        available_items = [item for item in all_items_list if item in df.columns]
+        if available_items:
+            freq_data = df[available_items].apply(lambda x: x.value_counts(normalize=True)).T * 100
+            freq_data = freq_data.fillna(0).sort_index()
 
-        for i in range(1, 6):
-            if i not in freq_data.columns:
-                freq_data[i] = 0.0
-        freq_data = freq_data.sort_index(axis=1)
+            for i in range(1, 6):
+                if i not in freq_data.columns:
+                    freq_data[i] = 0.0
+            freq_data = freq_data.sort_index(axis=1)
 
-        try:
             fig_stack, ax_stack = plt.subplots(figsize=(8, 5))
             freq_data.plot(
                 kind="bar",
@@ -738,82 +715,70 @@ def generate_pdf_report(
                 loc="upper left",
             )
             plt.tight_layout()
-            add_plot(fig_stack, ax_stack.get_title(), width=450) # Use a wider plot
-        except Exception as e:
-            print(f"Stacked Plot Failed: {e}")
-            plt.close('all')
+            figures_to_add.append((fig_stack, ax_stack.get_title()))
 
+    # Histograms X_total / Y_total
+    if include_hist_x_plot and valid_xy is not None and "X_total" in valid_xy.columns:
+        any_plot = True
+        fig_hx, ax_hx = plt.subplots(figsize=(6, 4))
+        ax_hx.hist(valid_xy["X_total"].dropna(), bins=5, edgecolor="black", color="lightcoral")
+        ax_hx.set_xlabel(t["x_total_score"])
+        ax_hx.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
+        ax_hx.set_title("Histogram X_total")
+        plt.tight_layout()
+        figures_to_add.append((fig_hx, ax_hx.get_title()))
 
-    # Histograms X_total / Y_total (Width set to DEFAULT_PLOT_WIDTH)
-    if include_hist_x_plot and "X_total" in valid_xy.columns:
-        try:
-            fig_hx, ax_hx = plt.subplots(figsize=(6, 4))
-            ax_hx.hist(valid_xy["X_total"].dropna(), bins=5, edgecolor="black", color="lightcoral")
-            ax_hx.set_xlabel(t["x_total_score"])
-            ax_hx.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
-            ax_hx.set_title("Histogram X_total")
-            plt.tight_layout()
-            add_plot(fig_hx, ax_hx.get_title(), width=DEFAULT_PLOT_WIDTH)
-        except Exception as e:
-            print(f"Histogram X Plot Failed: {e}")
-            plt.close('all')
+    if include_hist_y_plot and valid_xy is not None and "Y_total" in valid_xy.columns:
+        any_plot = True
+        fig_hy, ax_hy = plt.subplots(figsize=(6, 4))
+        ax_hy.hist(valid_xy["Y_total"].dropna(), bins=5, edgecolor="black", color="lightgreen")
+        ax_hy.set_xlabel(t["y_total_score"])
+        ax_hy.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
+        ax_hy.set_title("Histogram Y_total")
+        plt.tight_layout()
+        figures_to_add.append((fig_hy, ax_hy.get_title()))
 
-    if include_hist_y_plot and "Y_total" in valid_xy.columns:
-        try:
-            fig_hy, ax_hy = plt.subplots(figsize=(6, 4))
-            ax_hy.hist(valid_xy["Y_total"].dropna(), bins=5, edgecolor="black", color="lightgreen")
-            ax_hy.set_xlabel(t["y_total_score"])
-            ax_hy.set_ylabel(t["frequency"] if lang_code == "id" else "Frequency")
-            ax_hy.set_title("Histogram Y_total")
-            plt.tight_layout()
-            add_plot(fig_hy, ax_hy.get_title(), width=DEFAULT_PLOT_WIDTH)
-        except Exception as e:
-            print(f"Histogram Y Plot Failed: {e}")
-            plt.close('all')
-            
-
-    # Scatter (Width set to DEFAULT_PLOT_WIDTH)
-    if include_scatter_plot and {"X_total", "Y_total"}.issubset(valid_xy.columns):
-        if valid_xy["X_total"].nunique() > 1 and valid_xy["Y_total"].nunique() > 1:
-            try:
-                fig_sc, ax_sc = plt.subplots(figsize=(6, 4))
-                ax_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"], alpha=0.7)
-                
-                z = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
-                p_line = np.poly1d(z)
-                x_line = np.linspace(valid_xy["X_total"].min(), valid_xy["X_total"].max(), 100)
-                y_line = p_line(x_line)
-                ax_sc.plot(x_line, y_line, color="red", linestyle="--")
-                
-                ax_sc.set_xlabel(t["x_total_score"])
-                ax_sc.set_ylabel(t["y_total_score"])
-                if lang_code == "en":
-                    ax_sc.set_title("Scatterplot X_total vs Y_total")
-                else:
-                    ax_sc.set_title("Scatterplot X_total vs Y_total")
-                plt.tight_layout()
-                add_plot(fig_sc, ax_sc.get_title(), width=DEFAULT_PLOT_WIDTH)
-            except Exception as e:
-                print(f"Scatter Plot Failed: {e}")
-                plt.close('all')
+    # Scatter
+    if include_scatter_plot and valid_xy is not None and {"X_total", "Y_total"}.issubset(valid_xy.columns):
+        any_plot = True
+        fig_sc, ax_sc = plt.subplots(figsize=(6, 4))
+        ax_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"], alpha=0.7)
+        z = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+        p_line = np.poly1d(z)
+        x_line = np.linspace(valid_xy["X_total"].min(), valid_xy["X_total"].max(), 100)
+        y_line = p_line(x_line)
+        ax_sc.plot(x_line, y_line, color="red", linestyle="--")
+        ax_sc.set_xlabel(t["x_total_score"])
+        ax_sc.set_ylabel(t["y_total_score"])
+        if lang_code == "en":
+            ax_sc.set_title("Scatterplot X_total vs Y_total")
         else:
-            story.append(Paragraph("Scatterplot Skipped: X_total or Y_total lacks variance.", styles["Normal"]))
+            ax_sc.set_title("Scatterplot X_total vs Y_total")
+        plt.tight_layout()
+        figures_to_add.append((fig_sc, ax_sc.get_title()))
 
+    # Add visualizations section if any plot exists
+    if any_plot:
+        story.append(Paragraph(vis_title, styles["Heading2"]))
+        story.append(Spacer(1, 10))
+        for fig, title in figures_to_add:
+            add_plot(fig, title)
 
-    # Build PDF - WRAPPED IN TRY-EXCEPT TO CATCH THE EXACT ERROR
+    # Build PDF
     try:
         doc.build(story)
         pdf_bytes = buffer.getvalue()
         return final_filename, pdf_bytes, None
     except Exception as e:
-        plt.close("all")
         return final_filename, None, e
     finally:
+        # Clean up temporary image files
         for path in temp_imgs:
             try:
                 os.remove(path)
             except OSError:
                 pass
+
 
 # ------------------------------------------------------------------
 # STREAMLIT APP
@@ -1362,7 +1327,7 @@ with tab_assoc:
 # TAB PDF
 with tab_pdf:
     st.markdown(t["pdf_export"])
-    pdf_filename = st.text_input(t["pdf_filename"], value="")
+    pdf_filename = st.text_input(t["pdf_filename"], value="analysis_report")
 
     st.markdown("---")
     st.write(t["select_content"])
@@ -1382,6 +1347,27 @@ with tab_pdf:
     include_age_plot = st.checkbox(t["include_age"], value=True)
 
     if st.button(t["generate_pdf"]):
+        # Ensure all required data is available
+        if not hasattr(st.session_state, 'assoc_summary_text'):
+            assoc_summary_text = ""  # Provide default if not set
+        else:
+            assoc_summary_text = st.session_state.assoc_summary_text
+            
+        # Ensure age_counts is available
+        if age_counts is None or age_counts.empty:
+            age_counts = df["Age_Group"].value_counts().sort_index()
+            
+        # Ensure valid_xy is available
+        if valid_xy is None:
+            valid_xy = df[["X_total", "Y_total"]].dropna()
+            
+        # Ensure descriptive tables are available
+        desc_items = descriptive_table(df, x_items + y_items, t)
+        desc_comp = descriptive_table(df, ["X_total", "Y_total"], t)
+        
+        # Ensure result_norm is available
+        result_norm, _, _ = compute_normality(valid_xy, t)
+
         filename, pdf_bytes, err = generate_pdf_report(
             selected_lang,
             t,
