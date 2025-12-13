@@ -741,21 +741,32 @@ def generate_pdf_report(
 
     # Scatter
     if include_scatter_plot and {"X_total", "Y_total"}.issubset(valid_xy.columns):
-        fig_sc, ax_sc = plt.subplots(figsize=(6, 4))
-        ax_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"], alpha=0.7)
-        z = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
-        p_line = np.poly1d(z)
-        x_line = np.linspace(valid_xy["X_total"].min(), valid_xy["X_total"].max(), 100)
-        y_line = p_line(x_line)
-        ax_sc.plot(x_line, y_line, color="red", linestyle="--")
-        ax_sc.set_xlabel(t["x_total_score"])
-        ax_sc.set_ylabel(t["y_total_score"])
-        if lang_code == "en":
-            ax_sc.set_title("Scatterplot X_total vs Y_total")
-        else:
-            ax_sc.set_title("Scatterplot X_total vs Y_total")
-        plt.tight_layout()
-        add_plot(fig_sc, ax_sc.get_title())
+        try:
+            fig_sc, ax_sc = plt.subplots(figsize=(6, 4))
+            ax_sc.scatter(valid_xy["X_total"], valid_xy["Y_total"], alpha=0.7)
+
+            # Check for variance before fitting a line
+            if valid_xy["X_total"].nunique() > 1 and valid_xy["Y_total"].nunique() > 1:
+                z = np.polyfit(valid_xy["X_total"], valid_xy["Y_total"], 1)
+                p_line = np.poly1d(z)
+                x_line = np.linspace(valid_xy["X_total"].min(), valid_xy["X_total"].max(), 100)
+                y_line = p_line(x_line)
+                ax_sc.plot(x_line, y_line, color="red", linestyle="--")
+
+            ax_sc.set_xlabel(t["x_total_score"])
+            ax_sc.set_ylabel(t["y_total_score"])
+            if lang_code == "en":
+                ax_sc.set_title("Scatterplot X_total vs Y_total")
+            else:
+                ax_sc.set_title("Scatterplot X_total vs Y_total")
+            plt.tight_layout()
+            add_plot(fig_sc, ax_sc.get_title())
+        except Exception as plot_e:
+            # If plot fails, log it and continue without the plot
+            print(f"Scatterplot creation failed: {plot_e}")
+            plt.close("all")
+            story.append(Paragraph(f"**Error in Scatterplot:** {plot_e}", styles["Error"]))
+            story.append(Spacer(1, 10))
 
     # Build PDF
     try:
