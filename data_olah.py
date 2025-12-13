@@ -95,7 +95,7 @@ LANGUAGES = {
         "result_for_item": "#### Result for Item:",
         "frequency": "Frequency",
         "percentage": "Percentage (%)",
-        "likert_note": "Note: STS=Strongly Disagree, SS=Strongly Agree.",
+        "likert_note": "Note: SD=Strongly Disagree, SA=Strongly Agree.",
         "visualizations": "### 6. Visualizations",
         "age_chart": "#### 6.1 Distribution of Respondents by Age Group",
         "hist_x": "#### 6.2 Distribution of X_total (FOMO)",
